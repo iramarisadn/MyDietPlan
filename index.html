@@ -97,7 +97,7 @@ main{min-width:0;display:flex;flex-direction:column;gap:20px}
 
 label.f{display:flex;flex-direction:column;gap:5px;font-size:.82rem;font-weight:600;color:var(--ink-2);min-width:0}
 label.f .hint{font-weight:400;color:var(--muted);font-size:.75rem}
-input[type=text],input[type=number],input[type=date],select,textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:9px 11px;min-height:40px;font-size:.95rem}
+input[type=text],input[type=password],input[type=number],input[type=date],select,textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:9px 11px;min-height:40px;font-size:.95rem}
 textarea{resize:vertical;min-height:70px}
 input:focus,select:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(--accent) 50%,transparent);border-color:var(--accent)}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
@@ -272,7 +272,8 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
 .empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
 .gate{position:fixed;inset:0;z-index:30;background:var(--bg);display:grid;place-items:center;overflow-y:auto;padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .gate-card{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px}
-.logout{align-self:flex-start}
+.acct{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-top:12px;min-width:0}
+.gate-card .tiny{border-top:1px solid var(--line);padding-top:12px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:10px;font-size:.9rem;z-index:20;max-width:calc(100vw - 32px)}
 
 @media (max-width: 960px){ .g4{grid-template-columns:repeat(2,minmax(0,1fr))} .g3{grid-template-columns:repeat(2,minmax(0,1fr))} }
@@ -308,40 +309,88 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
 <div class="gate" id="gate" hidden>
-  <form class="gate-card" id="gate-form">
+  <div class="gate-card">
     <div class="brand"><div class="brand-mark">MD</div><div><b>MyDietPlan</b><small>Teman diet harianmu</small></div></div>
-    <div class="stack" style="gap:4px"><h2>Masuk</h2><p class="small muted">Masukkan password untuk membuka MyDietPlan.</p></div>
-    <label class="f">Password<input type="password" id="gate-pw" autocomplete="current-password" required></label>
-    <label class="chk" style="align-self:flex-start"><input type="checkbox" id="gate-remember" checked>Ingat di perangkat ini</label>
-    <p class="small" id="gate-err" style="color:var(--bad)" hidden>Password salah. Periksa huruf besar/kecil lalu coba lagi.</p>
-    <button class="btn primary" type="submit">Masuk</button>
-  </form>
+    <form id="gate-login" class="stack" style="gap:14px" hidden>
+      <div class="stack" style="gap:4px"><h2>Masuk</h2><p class="small muted">Masuk ke akun MyDietPlan Anda.</p></div>
+      <label class="f">Nama pengguna<input type="text" id="li-user" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+      <label class="f">Password<input type="password" id="li-pw" autocomplete="current-password" required></label>
+      <label class="chk" style="align-self:flex-start"><input type="checkbox" id="li-remember" checked>Ingat saya di perangkat ini</label>
+      <p class="small" id="li-err" style="color:var(--bad)" hidden></p>
+      <button class="btn primary" type="submit">Masuk</button>
+      <p class="small muted">Belum punya akun? <a href="#" data-mode="signup">Daftar sekarang</a></p>
+    </form>
+    <form id="gate-signup" class="stack" style="gap:14px" hidden>
+      <div class="stack" style="gap:4px"><h2>Daftar</h2><p class="small muted">Buat akun untuk mulai memakai MyDietPlan.</p></div>
+      <label class="f">Nama lengkap<input type="text" id="su-name" autocomplete="name" required></label>
+      <label class="f">Nama pengguna<span class="hint">Dipakai untuk masuk. Huruf kecil, angka, titik, _ atau -</span><input type="text" id="su-user" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+      <label class="f">Password<span class="hint">Minimal 8 karakter</span><input type="password" id="su-pw" autocomplete="new-password" required></label>
+      <label class="f">Ulangi password<input type="password" id="su-pw2" autocomplete="new-password" required></label>
+      <p class="small" id="su-err" style="color:var(--bad)" hidden></p>
+      <button class="btn primary" type="submit">Buat akun</button>
+      <p class="small muted">Sudah punya akun? <a href="#" data-mode="login">Masuk</a></p>
+    </form>
+    <p class="tiny muted">Akun dan data tersimpan di browser perangkat ini. Password tidak bisa dipulihkan, jadi simpan baik-baik.</p>
+  </div>
 </div>
 <script>
-/* Password gate: only on the standalone site (GitHub Pages). Inside Claude, access is handled by Claude sign-in. */
+/* Sign-up / sign-in: only on the standalone site (GitHub Pages). Inside Claude, access is handled by Claude sign-in.
+   Accounts live in this browser's localStorage; passwords are stored as salted PBKDF2 hashes. */
 (() => {
   if (window.claude) return;
-  const HASH = '48a98421ff0a00369af30d092ca64d39a5415547d65ee777927a5973f28c2dbb';
-  const app = document.querySelector('.app'), gate = document.getElementById('gate');
-  let ok = false;
-  try { ok = localStorage.getItem('mdp-unlock') === HASH || sessionStorage.getItem('mdp-unlock') === HASH; } catch {}
-  const addLogout = () => {
-    const b = document.createElement('button');
-    b.className = 'btn small ghost logout'; b.type = 'button'; b.textContent = 'Keluar';
-    b.onclick = () => { try { localStorage.removeItem('mdp-unlock'); sessionStorage.removeItem('mdp-unlock'); } catch {} location.reload(); };
-    document.querySelector('.nav').append(b);
+  const $g = id => document.getElementById(id);
+  const app = document.querySelector('.app'), gate = $g('gate');
+  const accounts = () => { try { return JSON.parse(localStorage.getItem('mdp-accounts')) || {}; } catch { return {}; } };
+  const hex = buf => [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, '0')).join('');
+  async function hashPw(pw, saltHex) {
+    const salt = new Uint8Array(saltHex.match(/../g).map(h => parseInt(h, 16)));
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+    return hex(await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: 150000, hash: 'SHA-256' }, key, 256));
+  }
+  let resolve; window.mdpAuth = { ready: new Promise(r => { resolve = r; }) };
+  const finish = (username, remember) => {
+    try { (remember ? localStorage : sessionStorage).setItem('mdp-session', username); } catch {}
+    const user = { username, name: accounts()[username]?.name || username };
+    window.mdpAuth.user = user;
+    gate.hidden = true; app.hidden = false;
+    const box = document.createElement('div'); box.className = 'acct';
+    box.innerHTML = '<span class="small"><b></b><br><span class="tiny muted"></span></span><button type="button" class="btn small ghost">Keluar</button>';
+    box.querySelector('b').textContent = user.name; box.querySelector('.tiny').textContent = '@' + username;
+    box.querySelector('button').onclick = () => { try { localStorage.removeItem('mdp-session'); sessionStorage.removeItem('mdp-session'); } catch {} location.reload(); };
+    document.querySelector('.nav').append(box);
+    resolve(user);
   };
-  if (ok) { addLogout(); return; }
+  let session = null;
+  try { session = sessionStorage.getItem('mdp-session') || localStorage.getItem('mdp-session'); } catch {}
+  if (session && accounts()[session]) { finish(session, false); return; }
+  const show = mode => { $g('gate-login').hidden = mode !== 'login'; $g('gate-signup').hidden = mode !== 'signup'; $g(mode === 'login' ? 'li-user' : 'su-name').focus(); };
+  const err = (id, msg) => { const el = $g(id); el.textContent = msg; el.hidden = !msg; };
   app.hidden = true; gate.hidden = false;
-  document.getElementById('gate-pw').focus();
-  document.getElementById('gate-form').addEventListener('submit', async e => {
+  show(Object.keys(accounts()).length ? 'login' : 'signup');
+  gate.addEventListener('click', e => { const m = e.target.closest('[data-mode]'); if (m) { e.preventDefault(); show(m.dataset.mode); } });
+  $g('gate-signup').addEventListener('submit', async e => {
     e.preventDefault();
-    const pw = document.getElementById('gate-pw').value;
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('mydietplan:' + pw));
-    const hex = [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, '0')).join('');
-    if (hex !== HASH) { document.getElementById('gate-err').hidden = false; document.getElementById('gate-pw').select(); return; }
-    try { (document.getElementById('gate-remember').checked ? localStorage : sessionStorage).setItem('mdp-unlock', HASH); } catch {}
-    gate.hidden = true; app.hidden = false; addLogout();
+    const name = $g('su-name').value.trim(), u = $g('su-user').value.trim().toLowerCase(), pw = $g('su-pw').value, pw2 = $g('su-pw2').value;
+    if (!name) return err('su-err', 'Isi nama lengkap Anda.');
+    if (!/^[a-z0-9._-]{3,30}$/.test(u)) return err('su-err', 'Nama pengguna 3–30 karakter: huruf kecil, angka, titik, garis bawah, atau tanda minus. Tanpa spasi.');
+    const accs = accounts();
+    if (accs[u]) return err('su-err', 'Nama pengguna ini sudah terdaftar di perangkat ini. Pilih nama lain, atau masuk.');
+    if (pw.length < 8) return err('su-err', 'Password minimal 8 karakter.');
+    if (pw !== pw2) return err('su-err', 'Ulangi password belum sama dengan password.');
+    const salt = hex(crypto.getRandomValues(new Uint8Array(16)));
+    accs[u] = { name, salt, hash: await hashPw(pw, salt), createdAt: new Date().toISOString() };
+    try {
+      // The first account on a device keeps any data entered before accounts existed.
+      if (Object.keys(accs).length === 1) { const old = localStorage.getItem('lingkar-timbang-v1'); if (old && !localStorage.getItem('lingkar-timbang-v1:' + u)) localStorage.setItem('lingkar-timbang-v1:' + u, old); }
+      localStorage.setItem('mdp-accounts', JSON.stringify(accs));
+    } catch { return err('su-err', 'Browser menolak menyimpan akun. Matikan mode privat/incognito lalu coba lagi.'); }
+    finish(u, true);
+  });
+  $g('gate-login').addEventListener('submit', async e => {
+    e.preventDefault();
+    const u = $g('li-user').value.trim().toLowerCase(), pw = $g('li-pw').value, acc = accounts()[u];
+    if (!acc || await hashPw(pw, acc.salt) !== acc.hash) { err('li-err', 'Nama pengguna atau password salah.'); $g('li-pw').select(); return; }
+    finish(u, $g('li-remember').checked);
   });
 })();
 </script>
@@ -400,7 +449,7 @@ const S = {
   ai: null, aiImages: null, readOnly: false,
 };
 let db = null;
-const LS_KEY = 'lingkar-timbang-v1';
+let LS_KEY = 'lingkar-timbang-v1';
 const COLLS = ['diet', 'measurements', 'meals', 'workouts', 'reviews'];
 
 function loadLocal() { try { const raw = localStorage.getItem(LS_KEY); if (raw) { const v = JSON.parse(raw); for (const c of COLLS) S.data[c] = v[c] || {}; } } catch {} }
@@ -926,7 +975,7 @@ function vProfil() {
     <p>Angka di sini menentukan kebutuhan kalori, status kesehatan, meal plan, dan saran olahraga. Gaya hidup dan kondisi kesehatan dipakai AI untuk mencari akar masalah.</p></div></div>
   <form class="card stack" style="gap:24px" id="profile-form">
     <fieldset><legend>Data dasar</legend><div class="form-grid">
-      <label class="f">Nama<input type="text" id="pf-name" required value="${v('name')}" autocomplete="name"></label>
+      <label class="f">Nama<input type="text" id="pf-name" required value="${v('name', S.account?.name || '')}" autocomplete="name"></label>
       <label class="f">Jenis kelamin${sel('pf-sex', [['L', 'Laki-laki'], ['P', 'Perempuan']], p.sex || 'L')}</label>
       <label class="f">Tanggal lahir<input type="date" id="pf-birth" required value="${v('birth')}"></label>
       <label class="f">Tinggi badan (cm)<input type="number" id="pf-height" required min="120" max="230" step="0.1" value="${v('height')}"></label>
@@ -1463,8 +1512,11 @@ main.addEventListener('click', async e => {
 
 /* ---------- boot ---------- */
 S.view = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'ringkasan';
-initStore().then(route);
-initAI();
+(window.mdpAuth ? window.mdpAuth.ready : Promise.resolve(null)).then(user => {
+  if (user) { LS_KEY = 'lingkar-timbang-v1:' + user.username; S.account = user; }
+  initStore().then(route);
+  initAI();
+});
 </script>
 </body>
 </html>
