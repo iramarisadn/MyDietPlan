@@ -1,0 +1,1429 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="MyDietPlan: jurnal diet pribadi untuk status BMI, kalori, meal plan, olahraga, dan progress berat badan.">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>MyDietPlan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: sidebar nav + one working column of cards; numbers set in mono like a lab sheet, nutrition-label box for daily totals. */
+:root {
+  --bg:#F3F4F7; --surface:#FFFFFF; --surface-2:#ECEEF4; --ink:#161A2B; --ink-2:#4A5068; --muted:#737993; --line:#DADDE7;
+  --accent:#3946B5; --accent-ink:#FFFFFF; --accent-soft:#E3E6FA; --teal:#00928A; --proj:#9AA0B8;
+  --good:#1B8A4E; --good-soft:#DDF3E6; --warn:#9A6A00; --warn-dot:#E0A817; --warn-soft:#FBF0D2; --bad:#C23B3B; --bad-soft:#F9E0DE;
+  --shadow:0 1px 2px rgba(22,26,43,.06),0 4px 16px rgba(22,26,43,.05);
+  --f-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --f-body:"Figtree","Segoe UI",system-ui,-apple-system,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#0F1220; --surface:#171B2C; --surface-2:#20253A; --ink:#E8EAF4; --ink-2:#B3B8CE; --muted:#8990AB; --line:#2C3250;
+  --accent:#7D88F2; --accent-ink:#0F1220; --accent-soft:#252B52; --teal:#1FAAA2; --proj:#5D6482;
+  --good:#4CC985; --good-soft:#173326; --warn:#F0C04A; --warn-dot:#F0C04A; --warn-soft:#3A3014; --bad:#FF7B72; --bad-soft:#3D1E1E;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark; } }
+:root[data-theme="dark"] {
+  --bg:#0F1220; --surface:#171B2C; --surface-2:#20253A; --ink:#E8EAF4; --ink-2:#B3B8CE; --muted:#8990AB; --line:#2C3250;
+  --accent:#7D88F2; --accent-ink:#0F1220; --accent-soft:#252B52; --teal:#1FAAA2; --proj:#5D6482;
+  --good:#4CC985; --good-soft:#173326; --warn:#F0C04A; --warn-dot:#F0C04A; --warn-soft:#3A3014; --bad:#FF7B72; --bad-soft:#3D1E1E;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark; }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(1.6rem,3.2vw,2.2rem);font-weight:800}
+h2{font-size:1.2rem;font-weight:700}
+h3{font-size:1rem;font-weight:700}
+p{margin:0}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+.app{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;max-width:1240px;margin:0 auto;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 64px}
+.nav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;display:flex;flex-direction:column;gap:18px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{width:34px;height:34px;border-radius:10px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:1rem}
+.brand b{font-family:var(--f-display);font-size:1.05rem;line-height:1.1;display:block}
+.brand small{color:var(--muted);font-size:.75rem}
+.tabs{display:flex;flex-direction:column;gap:2px}
+.tabs a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:var(--ink-2);text-decoration:none;font-weight:600}
+.tabs a:hover{background:var(--surface-2);color:var(--ink)}
+.tabs a[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.tabs a .k{font-family:var(--f-mono);font-size:.7rem;color:var(--muted);width:18px}
+.store-note{font-size:.75rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;display:flex;gap:8px;align-items:flex-start}
+.store-note i{width:8px;height:8px;border-radius:50%;background:var(--muted);margin-top:5px;flex:none}
+.store-note i.on{background:var(--good)}
+
+main{min-width:0;display:flex;flex-direction:column;gap:20px}
+.page-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px}
+.page-head p{color:var(--ink-2);max-width:62ch}
+.eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow);min-width:0}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.card-head p{color:var(--muted);font-size:.85rem}
+.grid{display:grid;gap:20px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.muted{color:var(--muted)} .small{font-size:.85rem} .tiny{font-size:.75rem}
+
+.banner{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn-dot) 45%,transparent);border-radius:12px;padding:12px 16px}
+.banner p{max-width:70ch}
+
+.btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:9px;padding:9px 14px;border:1px solid var(--line);background:var(--surface);font-weight:600;cursor:pointer;min-height:40px}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--ink-2)}
+.btn.small{min-height:32px;padding:5px 10px;font-size:.85rem}
+.btn.danger{color:var(--bad)}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+.btn.armed{background:var(--bad);color:#fff;border-color:var(--bad)}
+
+label.f{display:flex;flex-direction:column;gap:5px;font-size:.82rem;font-weight:600;color:var(--ink-2);min-width:0}
+label.f .hint{font-weight:400;color:var(--muted);font-size:.75rem}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:9px 11px;min-height:40px;font-size:.95rem}
+textarea{resize:vertical;min-height:70px}
+input:focus,select:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(--accent) 50%,transparent);border-color:var(--accent)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.chk{display:inline-flex;gap:7px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.85rem;cursor:pointer;background:var(--surface)}
+.chk:has(input:checked){background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.chk input{accent-color:var(--accent)}
+fieldset{border:none;padding:0;margin:0;display:flex;flex-direction:column;gap:14px}
+legend{font-family:var(--f-display);font-weight:700;font-size:1rem;margin-bottom:6px;padding:0}
+
+/* status lights */
+.light{display:inline-flex;align-items:center;gap:8px;font-weight:700}
+.dot{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:0 0 0 3px var(--surface)}
+.l0 .dot,.dot.l0{background:var(--good)} .l1 .dot,.dot.l1{background:var(--warn-dot)} .l2 .dot,.dot.l2{background:var(--bad)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:.78rem;font-weight:700}
+.pill.l0{background:var(--good-soft);color:var(--good)} .pill.l1{background:var(--warn-soft);color:var(--warn)} .pill.l2{background:var(--bad-soft);color:var(--bad)}
+.pill.n{background:var(--surface-2);color:var(--ink-2)} .pill.a{background:var(--accent-soft);color:var(--accent)}
+
+.status-hero{display:grid;grid-template-columns:auto minmax(0,1fr);gap:22px;align-items:center}
+.signal{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:16px;background:var(--surface-2)}
+.signal span{width:30px;height:30px;border-radius:50%;background:var(--line);opacity:.45}
+.signal span.on{opacity:1}
+.signal .s2.on{background:var(--bad);box-shadow:0 0 14px color-mix(in srgb,var(--bad) 60%,transparent)}
+.signal .s1.on{background:var(--warn-dot);box-shadow:0 0 14px color-mix(in srgb,var(--warn-dot) 60%,transparent)}
+.signal .s0.on{background:var(--good);box-shadow:0 0 14px color-mix(in srgb,var(--good) 60%,transparent)}
+.status-title{font-family:var(--f-display);font-size:1.7rem;font-weight:800;line-height:1.1}
+.ind{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.ind:first-child{border-top:none}
+.ind .v{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums}
+.ind .t{font-size:.78rem;color:var(--muted);grid-column:2 / 4}
+
+.scale{position:relative;height:10px;border-radius:5px;display:flex;overflow:visible;margin:26px 0 22px}
+.scale div{height:100%}
+.scale div:first-child{border-radius:5px 0 0 5px} .scale div:last-child{border-radius:0 5px 5px 0}
+.scale .mk{position:absolute;top:-24px;transform:translateX(-50%);font-family:var(--f-mono);font-size:.72rem;font-weight:600;background:var(--ink);color:var(--surface);padding:1px 6px;border-radius:5px;white-space:nowrap}
+.scale .mk::after{content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--ink)}
+.scale .tk{position:absolute;top:14px;transform:translateX(-50%);font-family:var(--f-mono);font-size:.66rem;color:var(--muted)}
+
+.tile{display:flex;flex-direction:column;gap:4px}
+.tile .lbl{font-size:.78rem;color:var(--muted);font-weight:600}
+.tile .val{font-family:var(--f-mono);font-size:1.55rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.15}
+.tile .val small{font-size:.8rem;color:var(--muted);font-weight:500;margin-left:3px}
+.tile .sub{font-size:.75rem;color:var(--muted)}
+.tile .sub.down{color:var(--good)} .tile .sub.up{color:var(--bad)}
+
+.bar{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.bar > i{display:block;height:100%;border-radius:4px;background:var(--accent)}
+.bar.over > i{background:var(--bad)}
+.bar.teal > i{background:var(--teal)}
+
+/* deficit option cards */
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.opt{position:relative;text-align:left;border:1.5px solid var(--line);border-radius:12px;padding:16px;background:var(--surface);cursor:pointer;display:flex;flex-direction:column;gap:8px}
+.opt:hover{border-color:var(--accent)}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt .big{font-family:var(--f-mono);font-size:1.6rem;font-weight:600}
+.opt .tag{position:absolute;top:12px;right:12px}
+.opt dl{display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:2px 10px;margin:0;font-size:.82rem}
+.opt dt{color:var(--muted)} .opt dd{margin:0;font-family:var(--f-mono);text-align:right}
+
+/* tables */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--surface-2);font-weight:700}
+tr:last-child td{border-bottom:none}
+td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.up{color:var(--bad)} .down{color:var(--good)} .flat{color:var(--muted)}
+.wrap-cell{white-space:normal;min-width:220px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cal-h{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:center;font-weight:700}
+.cal-d{min-height:78px;min-width:0;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:6px 7px;display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;cursor:pointer;position:relative}
+.cal-d:hover{border-color:var(--accent)}
+.cal-d.today{box-shadow:inset 0 0 0 2px var(--accent)}
+.cal-d[disabled]{opacity:.4;cursor:default;border-color:var(--line)}
+.cal-blank{min-height:78px}
+.cal-n{font-size:.75rem;font-weight:700;color:var(--ink-2)}
+.cal-m{position:absolute;top:8px;right:7px;display:flex;gap:3px}
+.cal-m i,.cal-legend .mk{width:7px;height:7px;border-radius:50%;display:inline-block}
+.cal-m .w,.cal-legend .w{background:var(--accent);border-radius:2px}
+.cal-m .x,.cal-legend .x{background:var(--teal)}
+.cal-k{font-family:var(--f-mono);font-size:.82rem;font-weight:600;margin-top:auto;font-variant-numeric:tabular-nums}
+.cal-p{font-family:var(--f-mono);font-size:.68rem;color:var(--muted)}
+.s-ok{background:var(--good-soft);border-color:color-mix(in srgb,var(--good) 40%,transparent)} .s-ok .cal-p{color:var(--good)}
+.s-o1{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn-dot) 50%,transparent)} .s-o1 .cal-p{color:var(--warn)}
+.s-o2{background:var(--bad-soft);border-color:color-mix(in srgb,var(--bad) 40%,transparent)} .s-o2 .cal-p{color:var(--bad)}
+.s-lo{border-style:dashed;border-color:var(--muted)}
+.cal-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px;font-size:.78rem;color:var(--ink-2)}
+.cal-legend span{display:inline-flex;align-items:center;gap:6px}
+.cal-legend .sw{width:14px;height:14px;border-radius:4px;border:1px solid var(--line);display:inline-block}
+@media (max-width:520px){.cal{gap:3px}.cal-d,.cal-blank{min-height:60px}.cal-d{padding:4px;border-radius:7px}.cal-k{font-size:.62rem}.cal-p{font-size:.56rem}.cal-n{font-size:.68rem}.cal-m{top:5px;right:4px}.cal-m i{width:5px;height:5px}}
+.mp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.mp-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface);display:flex;flex-direction:column;min-width:0}
+.mp-img{display:block;width:100%;max-width:100%;aspect-ratio:320/220;object-fit:cover;background:var(--surface-2)}
+.mp-img.ph{display:grid;place-items:center;text-align:center;padding:12px}
+.mp-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.mp-body h3{font-size:1.02rem}
+.mp-body .mx{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.mp-body .kc{font-family:var(--f-mono);font-weight:600;color:var(--accent)}
+.mp-body .foot{margin-top:auto;padding-top:6px;display:flex;justify-content:flex-end}
+.mp-total{display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between;align-items:center;margin-top:14px;padding:12px 16px;border-radius:12px;background:var(--surface-2);font-family:var(--f-mono);font-size:.88rem}
+
+/* charts */
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto}
+.chart .tt{position:absolute;pointer-events:none;background:var(--ink);color:var(--surface);font-size:.78rem;padding:7px 10px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-110%);font-family:var(--f-mono)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:18px;height:0;border-top:2px solid currentColor;display:inline-block}
+.legend i.dash{border-top-style:dashed}
+
+/* timeline */
+.tl{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px}
+.tl-item{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:4px;background:var(--surface)}
+.tl-item.now{border-color:var(--accent);background:var(--accent-soft)}
+.tl-item.done{background:var(--surface-2)}
+.tl-item .m{font-family:var(--f-display);font-weight:700}
+.tl-item .r{display:flex;justify-content:space-between;font-size:.8rem;gap:6px}
+.tl-item .r b{font-family:var(--f-mono);font-weight:600}
+
+/* meals */
+.daynav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.daynav .d{font-family:var(--f-display);font-weight:700;font-size:1.05rem;min-width:170px;text-align:center}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed var(--line);border-radius:12px;padding:26px 16px;text-align:center;cursor:pointer;background:var(--surface-2)}
+.drop:hover,.drop.over{border-color:var(--accent)}
+.drop input{position:absolute;width:1px;height:1px;opacity:0}
+.draft{display:grid;grid-template-columns:200px minmax(0,1fr);gap:18px}
+.draft img{width:100%;border-radius:10px;aspect-ratio:1;object-fit:cover;max-width:100%}
+.meal{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.meal:first-child{border-top:none}
+.meal .ph{width:64px;height:64px;border-radius:10px;background:var(--surface-2);object-fit:cover;display:grid;place-items:center;color:var(--muted);font-size:.7rem;text-align:center}
+.meal .nm{font-weight:600}
+.meal .mx{font-size:.78rem;color:var(--muted);font-family:var(--f-mono)}
+.meal .kc{font-family:var(--f-mono);font-weight:600;text-align:right}
+.items{margin:6px 0 0;padding-left:18px;font-size:.82rem;color:var(--ink-2)}
+
+.nlabel{border:2px solid var(--ink);border-radius:6px;padding:10px 12px;font-size:.88rem;background:var(--surface)}
+.nlabel .t{font-family:var(--f-display);font-weight:800;font-size:1.15rem;border-bottom:6px solid var(--ink);padding-bottom:4px}
+.nlabel .s{font-size:.75rem;color:var(--ink-2);padding:4px 0;border-bottom:1px solid var(--ink)}
+.nlabel .r{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--line)}
+.nlabel .r.big{font-weight:800;font-size:1rem;border-bottom:3px solid var(--ink)}
+.nlabel .r span:last-child{font-family:var(--f-mono)}
+.nlabel .foot{font-size:.7rem;color:var(--muted);padding-top:6px}
+
+/* comments */
+.thread{display:flex;flex-direction:column;gap:12px}
+.msg{display:grid;grid-template-columns:32px minmax(0,1fr);gap:10px}
+.msg .av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:.72rem;font-weight:800;font-family:var(--f-display)}
+.msg.ai .av{background:var(--accent);color:var(--accent-ink)}
+.msg.user .av{background:var(--surface-2);color:var(--ink-2)}
+.msg .body{background:var(--surface-2);border-radius:4px 12px 12px 12px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.msg.user .body{background:var(--accent-soft)}
+.msg .meta{font-size:.72rem;color:var(--muted)}
+.msg ul{margin:0;padding-left:18px}
+.msg .txt{white-space:pre-wrap}
+
+/* exercise */
+.ex{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--surface)}
+.ex.pick{border-color:var(--accent)}
+.ex.no{opacity:.7}
+.ex .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.ex .kc{font-family:var(--f-mono);font-weight:600}
+
+.ai-box{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--surface-2);display:flex;flex-direction:column;gap:10px}
+.prob{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;padding:10px 0;border-top:1px solid var(--line)}
+.prob:first-child{border-top:none}
+.thinking{display:inline-flex;align-items:center;gap:8px;color:var(--muted)}
+.thinking::before{content:"";width:14px;height:14px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--accent);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.thinking::before{animation:none}}
+
+.empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:10px;font-size:.9rem;z-index:20;max-width:calc(100vw - 32px)}
+
+@media (max-width: 960px){ .g4{grid-template-columns:repeat(2,minmax(0,1fr))} .g3{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width: 820px){
+  .app{grid-template-columns:minmax(0,1fr);gap:16px;padding-block:12px 64px}
+  .nav{position:static;gap:10px}
+  .tabs{flex-direction:row;overflow-x:auto;gap:4px;padding-bottom:4px;scrollbar-width:none}
+  .tabs a{white-space:nowrap;padding:8px 12px}
+  .tabs a .k{display:none}
+  .store-note{display:none}
+  .g2,.g3{grid-template-columns:minmax(0,1fr)}
+  .draft{grid-template-columns:minmax(0,1fr)}
+  .draft img{max-width:260px}
+}
+@media (max-width: 480px){ .g4{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px} .card{padding:16px} .status-hero{grid-template-columns:minmax(0,1fr)} .signal{flex-direction:row;width:max-content} .tile .val{font-size:1.3rem} }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="nav">
+    <div class="brand"><div class="brand-mark">MD</div><div><b>MyDietPlan</b><small>Teman diet harianmu</small></div></div>
+    <nav class="tabs" id="tabs">
+      <a href="#ringkasan" data-v="ringkasan"><span class="k">01</span>Ringkasan</a>
+      <a href="#profil" data-v="profil"><span class="k">02</span>Profil</a>
+      <a href="#menu" data-v="menu"><span class="k">03</span>Meal plan</a>
+      <a href="#makan" data-v="makan"><span class="k">04</span>Catatan makan</a>
+      <a href="#olahraga" data-v="olahraga"><span class="k">05</span>Olahraga</a>
+      <a href="#tracking" data-v="tracking"><span class="k">06</span>Progress Tracker</a>
+    </nav>
+    <div class="store-note" id="store-note"><i></i><span>Menyambungkan penyimpanan…</span></div>
+  </aside>
+  <main id="main"><div class="card"><span class="thinking">Memuat profil, catatan berat badan, makanan, dan olahraga Anda…</span></div></main>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = (n, d = 0) => (n == null || !isFinite(n)) ? '–' : Number(n).toLocaleString('id-ID', { minimumFractionDigits: d, maximumFractionDigits: d });
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const todayStr = () => ymd(new Date());
+const parseYmd = s => { const [y, m, d] = String(s).split('-').map(Number); return new Date(y, m - 1, d); };
+const addDays = (s, n) => { const d = parseYmd(s); d.setDate(d.getDate() + n); return ymd(d); };
+const daysBetween = (a, b) => Math.round((parseYmd(b) - parseYmd(a)) / 86400000);
+const fmtDate = (s, o = { day: 'numeric', month: 'short', year: 'numeric' }) => parseYmd(s).toLocaleDateString('id-ID', o);
+const fmtDay = s => parseYmd(s).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const num = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return isFinite(n) ? n : null; };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const ageFrom = b => { const t = new Date(), d = parseYmd(b); let a = t.getFullYear() - d.getFullYear(); if (t.getMonth() < d.getMonth() || (t.getMonth() === d.getMonth() && t.getDate() < d.getDate())) a--; return a; };
+
+/* ---------- reference data ---------- */
+const ACTIVITY = [
+  { v: 1.2, label: 'Sangat ringan', desc: 'Kerja duduk, hampir tidak olahraga' },
+  { v: 1.375, label: 'Ringan', desc: 'Olahraga ringan 1–3 hari/minggu' },
+  { v: 1.55, label: 'Sedang', desc: 'Olahraga 3–5 hari/minggu atau kerja lapangan aktif' },
+  { v: 1.725, label: 'Berat', desc: 'Olahraga berat 6–7 hari/minggu' },
+  { v: 1.9, label: 'Sangat berat', desc: 'Kerja fisik berat + latihan harian' },
+];
+const GOALS = { jaga: 'Menjaga pola makan', sehat: 'Hidup lebih sehat', turun: 'Mengurangi berat badan' };
+const DEFICITS = { ringan: { kcal: 250, label: 'Ringan' }, sedang: { kcal: 500, label: 'Sedang' }, ekstrem: { kcal: 1000, label: 'Ekstrem' } };
+const CONDITIONS = ['Diabetes / gula darah tinggi', 'Hipertensi', 'Kolesterol tinggi', 'Asam urat', 'Maag / GERD', 'Nyeri lutut / sendi', 'Mendengkur / sleep apnea'];
+const WORK = ['Kantor (banyak duduk)', 'Lapangan (banyak bergerak)', 'Shift / rotasi', 'Campuran kantor & lapangan'];
+const MEAL_TYPES = ['Sarapan', 'Makan siang', 'Camilan', 'Makan malam'];
+const MEAL_SHARE = { 'Sarapan': .25, 'Makan siang': .35, 'Camilan': .1, 'Makan malam': .3 };
+const EXERCISES = [
+  { id: 'jalan', name: 'Jalan cepat', met: 4.3, impact: 'rendah', min: 40, kind: 'Kardio', why: 'Paling aman untuk sendi dan bisa tiap hari. Bagus untuk lemak perut.' },
+  { id: 'beban', name: 'Latihan beban seluruh tubuh', met: 5.0, impact: 'rendah', min: 35, kind: 'Kekuatan', why: 'Menjaga massa otot selama defisit kalori sehingga metabolisme tidak turun.' },
+  { id: 'sepeda', name: 'Sepeda statis / santai', met: 6.8, impact: 'rendah', min: 30, kind: 'Kardio', why: 'Membakar kalori tinggi tanpa beban di lutut.' },
+  { id: 'renang', name: 'Renang santai', met: 6.0, impact: 'rendah', min: 30, kind: 'Kardio', why: 'Melatih seluruh tubuh; cocok bila berat badan masih tinggi.' },
+  { id: 'senam', name: 'Senam aerobik low impact', met: 5.0, impact: 'rendah', min: 30, kind: 'Kardio', why: 'Bisa di rumah atau mess, tanpa alat.' },
+  { id: 'yoga', name: 'Yoga / peregangan', met: 2.5, impact: 'rendah', min: 25, kind: 'Pemulihan', why: 'Menurunkan stres dan memperbaiki tidur, yang ikut memengaruhi nafsu makan.' },
+  { id: 'tangga', name: 'Naik-turun tangga', met: 8.0, impact: 'sedang', min: 15, kind: 'Kardio', why: 'Singkat dan intens; bisa disisipkan di jam kerja.' },
+  { id: 'badminton', name: 'Bulu tangkis', met: 5.5, impact: 'sedang', min: 45, kind: 'Olahraga', why: 'Menyenangkan sehingga mudah dilakukan rutin.' },
+  { id: 'jogging', name: 'Jogging', met: 7.0, impact: 'tinggi', min: 30, kind: 'Kardio', why: 'Pembakaran tinggi bila sendi dan berat badan sudah memungkinkan.' },
+  { id: 'hiit', name: 'HIIT / sirkuit', met: 8.0, impact: 'tinggi', min: 20, kind: 'Kardio', why: 'Efisien waktu, tetapi berat untuk pemula.' },
+  { id: 'tali', name: 'Lompat tali', met: 11.0, impact: 'tinggi', min: 15, kind: 'Kardio', why: 'Sangat intens; hanya bila lutut sehat.' },
+];
+const DAY_PLAN = { 1: ['beban', 'jalan'], 2: ['sepeda', 'yoga'], 3: ['beban', 'jalan'], 4: ['renang', 'senam'], 5: ['beban', 'jalan'], 6: ['badminton', 'sepeda'], 0: ['jalan', 'yoga'] };
+
+/* ---------- state & storage ---------- */
+const S = {
+  view: 'ringkasan', date: todayStr(), mode: 'loading',
+  data: { diet: {}, measurements: {}, meals: {}, workouts: {}, reviews: {} },
+  busy: {}, err: {}, draft: null, manualAI: null, editMeasure: null,
+  ai: null, aiImages: null, readOnly: false,
+};
+let db = null;
+const LS_KEY = 'lingkar-timbang-v1';
+const COLLS = ['diet', 'measurements', 'meals', 'workouts', 'reviews'];
+
+function loadLocal() { try { const raw = localStorage.getItem(LS_KEY); if (raw) { const v = JSON.parse(raw); for (const c of COLLS) S.data[c] = v[c] || {}; } } catch {} }
+function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(S.data)); } catch { toast('Browser menolak menyimpan data. Mode privat mungkin aktif.'); } }
+
+async function put(coll, id, body) {
+  if (S.mode === 'db') {
+    try { await db.collection(coll).doc(id).set(body); }
+    catch (e) { writeErr(e); throw e; }
+  } else { S.data[coll][id] = body; saveLocal(); scheduleRender(); }
+}
+async function del(coll, id) {
+  if (S.mode === 'db') { try { await db.collection(coll).doc(id).delete(); } catch (e) { writeErr(e); throw e; } }
+  else { delete S.data[coll][id]; saveLocal(); scheduleRender(); }
+}
+function writeErr(e) {
+  if (e?.code === 'invalid_argument') { S.readOnly = true; toast('Hanya pemilik halaman ini yang bisa menyimpan data.'); }
+  else if (e?.code === 'quota_exceeded') toast('Penyimpanan penuh. Hapus beberapa catatan lama.');
+  else toast('Gagal menyimpan. Periksa koneksi lalu coba lagi.');
+}
+
+async function initStore() {
+  let got = null;
+  try { got = window.claude?.use ? await window.claude.use('db') : null; } catch { got = null; }
+  if (!got) { S.mode = 'local'; loadLocal(); setStoreNote(); scheduleRender(); return; }
+  db = got; S.mode = 'db'; setStoreNote();
+  let first = 0;
+  for (const c of COLLS) {
+    db.collection(c).onSnapshot(snap => {
+      S.data[c] = Object.fromEntries(snap.docs.map(d => [d.id, d.data()]));
+      if (c === 'diet' && S.loading !== false) S.loading = false;
+      first++; scheduleRender();
+    }, () => { toast('Sambungan data terputus. Muat ulang halaman.'); });
+  }
+}
+async function initAI() {
+  try {
+    const s = window.claude?.use ? await window.claude.use('sample') : null;
+    S.ai = s || null;
+    if (s) { const lim = await s.limits().catch(() => null); S.aiImages = lim?.images || null; }
+  } catch { S.ai = null; }
+  scheduleRender();
+}
+function setStoreNote() {
+  const el = $('#store-note');
+  el.innerHTML = S.mode === 'db'
+    ? '<i class="on"></i><span>Tersimpan di akun Claude Anda. Hanya pemilik yang bisa membaca.</span>'
+    : '<i></i><span>Tersimpan di browser ini saja. Buka halaman ini di Claude agar data ikut tersimpan di akun.</span>';
+}
+
+/* ---------- demo data (shown until a profile is saved) ---------- */
+const DEMO = (() => {
+  const t = todayStr(), start = addDays(t, -42);
+  const profile = { name: 'Contoh Pengguna', sex: 'L', birth: '1989-03-14', height: 170, startWeight: 88, startWaist: 101, targetWeight: 76,
+    activity: 1.375, goal: 'turun', months: 6, startDate: start, deficit: 'sedang', sleep: 6, stress: 'sedang', water: 1.5,
+    work: 'Lapangan (banyak bergerak)', conditions: ['Kolesterol tinggi'], allergy: '', pref: 'Nasi, ayam, ikan, menu kantin' };
+  const ws = [88, 87.4, 87.1, 86.3, 86.0, 85.4, 85.1], wa = [101, 100.5, 100, 99.2, 98.8, 98.1, 97.6];
+  const measurements = ws.map((w, i) => ({ date: addDays(start, i * 7), weight: w, waist: wa[i] }));
+  const meals = [
+    { id: 'd1', date: t, type: 'Sarapan', name: 'Oatmeal pisang + 2 telur rebus', kcal: 390, protein: 19, carbs: 48, fat: 12 },
+    { id: 'd2', date: t, type: 'Makan siang', name: 'Nasi, ayam bakar, sayur asem, tempe', kcal: 640, protein: 38, carbs: 72, fat: 20 },
+  ];
+  [1820, 1950, 2140, 1760, 1890, 2310, 1240, 1880, 1990, 1840, 1610, 2050, 1910, 1870, 2150, 1780, 1930, 1820, 2420, 1860]
+    .forEach((k, i) => meals.push({ id: 'h' + i, date: addDays(t, -(i + 1)), type: 'Makan siang', name: 'Total makan hari itu (contoh)', kcal: k, protein: 95, carbs: 210, fat: 60 }));
+  const workouts = [{ id: 'w1', date: t, name: 'Jalan cepat', met: 4.3, minutes: 40, kcal: 244, source: 'saran' }];
+  const plan = { catatan: 'Contoh susunan menu harian 1.900 kkal dengan lauk kantin.', at: t, targetKcal: 1900, meals: [
+    { waktu: 'Sarapan', jam: '06.00', menu: 'Oatmeal + pisang + 2 telur rebus', porsi: '40 g oat, 1 pisang', kcal: 420, protein: 20, karbo: 55, lemak: 12, alternatif: 'Nasi uduk ½ porsi + telur dadar tanpa kerupuk' },
+    { waktu: 'Makan siang', jam: '12.00', menu: 'Nasi merah, ikan bakar, sayur bening, tempe', porsi: '150 g nasi, 1 ekor ikan sedang', kcal: 620, protein: 40, karbo: 70, lemak: 16, alternatif: 'Gado-gado tanpa lontong, saus terpisah' },
+    { waktu: 'Camilan', jam: '15.30', menu: 'Yoghurt plain + buah potong', porsi: '150 g + 1 mangkuk kecil', kcal: 200, protein: 10, karbo: 30, lemak: 4, alternatif: 'Kacang rebus 1 genggam' },
+    { waktu: 'Makan malam', jam: '19.00', menu: 'Nasi ½ porsi, dada ayam panggang, tumis buncis', porsi: '100 g nasi, 120 g ayam', kcal: 560, protein: 42, karbo: 50, lemak: 18, alternatif: 'Sup ayam sayur + kentang rebus' },
+  ], tips: ['Minum 2 gelas air sebelum makan siang', 'Pilih lauk bakar/rebus di kantin'], hindari: ['Gorengan dan kerupuk', 'Minuman manis kemasan'] };
+  return { profile, measurements, meals, workouts, plan, analysis: null, reviews: {}, demo: true };
+})();
+
+function D() {
+  const prof = S.data.diet.profile;
+  if (!prof) return DEMO;
+  return { profile: prof, plan: S.data.diet.plan || null, analysis: S.data.diet.analysis || null,
+    measurements: Object.values(S.data.measurements), meals: Object.entries(S.data.meals).map(([id, m]) => ({ id, ...m })),
+    workouts: Object.entries(S.data.workouts).map(([id, w]) => ({ id, ...w })), reviews: S.data.reviews, demo: false };
+}
+
+/* ---------- calculations ---------- */
+function bmiInfo(b) {
+  if (b < 18.5) return { lvl: 1, label: 'Berat badan kurang', note: 'Di bawah 18,5' };
+  if (b < 23) return { lvl: 0, label: 'Normal', note: 'Rentang sehat Asia: 18,5–22,9' };
+  if (b < 25) return { lvl: 1, label: 'Berat badan lebih', note: 'Asia: 23–24,9 berisiko' };
+  if (b < 30) return { lvl: 2, label: 'Obesitas I', note: 'Asia: 25–29,9' };
+  return { lvl: 2, label: 'Obesitas II', note: '30 ke atas' };
+}
+function waistInfo(w, male) {
+  if (!w) return null;
+  const lim = male ? 90 : 80;
+  if (w >= lim) return { lvl: 2, label: 'Obesitas sentral', note: `Batas ${male ? 'pria' : 'wanita'} Asia: < ${lim} cm` };
+  if (w >= lim - 5) return { lvl: 1, label: 'Mendekati batas', note: `Batas ${male ? 'pria' : 'wanita'} Asia: < ${lim} cm` };
+  return { lvl: 0, label: 'Aman', note: `Batas ${male ? 'pria' : 'wanita'} Asia: < ${lim} cm` };
+}
+function whtrInfo(r) {
+  if (!r) return null;
+  if (r >= 0.6) return { lvl: 2, label: 'Risiko tinggi', note: 'Idealnya lingkar perut < ½ tinggi badan' };
+  if (r >= 0.5) return { lvl: 1, label: 'Perlu waspada', note: 'Idealnya lingkar perut < ½ tinggi badan' };
+  return { lvl: 0, label: 'Baik', note: 'Lingkar perut < ½ tinggi badan' };
+}
+function recommend(goal, bmi) {
+  if (goal === 'turun') return bmi >= 23 ? 'sedang' : 'ringan';
+  if (goal === 'sehat') return bmi >= 25 ? 'sedang' : bmi >= 23 ? 'ringan' : 'pemeliharaan';
+  return bmi >= 25 ? 'ringan' : 'pemeliharaan';
+}
+function measureSeries(d) {
+  const p = d.profile;
+  const list = [...d.measurements].filter(m => m.date >= p.startDate).sort((a, b) => a.date < b.date ? -1 : 1);
+  if (!list.length || list[0].date !== p.startDate) list.unshift({ date: p.startDate, weight: p.startWeight, waist: p.startWaist ?? null, baseline: true });
+  return list;
+}
+function compute(d) {
+  const p = d.profile, today = todayStr();
+  const series = measureSeries(d);
+  const last = series[series.length - 1];
+  const weight = last.weight;
+  const waist = [...series].reverse().find(s => s.waist)?.waist ?? null;
+  const age = ageFrom(p.birth), male = p.sex === 'L', hm = p.height / 100;
+  const bmi = weight / (hm * hm);
+  const bmr = 10 * weight + 6.25 * p.height - 5 * age + (male ? 5 : -161);
+  const tdee = bmr * p.activity;
+  const whtr = waist ? waist / p.height : null;
+  const ind = { bmi: bmiInfo(bmi), waist: waistInfo(waist, male), whtr: whtrInfo(whtr) };
+  const lv = Object.values(ind).filter(Boolean).map(i => i.lvl);
+  const score = lv.reduce((a, b) => a + b, 0), reds = lv.filter(x => x === 2).length;
+  const overall = (score >= 4 || reds >= 2) ? 2 : score >= 1 ? 1 : 0;
+  const bf = 1.2 * bmi + 0.23 * age - 10.8 * (male ? 1 : 0) - 5.4;
+  const floor = male ? 1500 : 1200;
+  const opts = Object.entries(DEFICITS).map(([key, o]) => {
+    const target = Math.max(floor, Math.round((tdee - o.kcal) / 10) * 10);
+    const def = Math.max(0, tdee - target), perWeek = def * 7 / 7700;
+    return { key, label: o.label, kcal: o.kcal, target, def, perWeek, pctBW: perWeek / weight * 100, clamped: tdee - o.kcal < floor };
+  });
+  const maint = { key: 'pemeliharaan', label: 'Pemeliharaan', kcal: 0, target: Math.round(tdee / 10) * 10, def: 0, perWeek: 0, pctBW: 0 };
+  const rec = recommend(p.goal, bmi);
+  const chosenKey = p.deficit || rec;
+  const chosen = chosenKey === 'pemeliharaan' ? maint : (opts.find(o => o.key === chosenKey) || opts[1]);
+  const target = chosen.target;
+  const refW = Math.min(weight, 25 * hm * hm);
+  const protein = Math.round(refW * (p.goal === 'turun' ? 1.6 : 1.3));
+  const fat = Math.round(target * 0.28 / 9);
+  const carbs = Math.max(0, Math.round((target - protein * 4 - fat * 9) / 4));
+  const fiber = Math.round(target / 1000 * 14);
+  // program
+  const totalDays = Math.round(p.months * 30.44), end = addDays(p.startDate, totalDays);
+  const dayN = clamp(daysBetween(p.startDate, today) + 1, 0, totalDays);
+  const startW = series[0].weight, startWaist = series[0].waist ?? p.startWaist ?? null;
+  const tgt = p.targetWeight && p.targetWeight < startW ? p.targetWeight : null;
+  const projW = date => { const wk = Math.max(0, daysBetween(p.startDate, date)) / 7; let v = startW - chosen.perWeek * wk; if (tgt && v < tgt) v = tgt; return v; };
+  const projWaist = date => startWaist ? startWaist - (startW - projW(date)) * 0.8 : null;
+  const weeksToTarget = tgt && chosen.perWeek > 0 ? (startW - tgt) / chosen.perWeek : null;
+  const targetDate = weeksToTarget != null ? addDays(p.startDate, Math.round(weeksToTarget * 7)) : null;
+  const neededPerWeek = tgt ? (startW - tgt) / (totalDays / 7) : null;
+  const milestones = [];
+  for (let i = 1; i <= p.months; i++) {
+    const date = addDays(p.startDate, Math.round(i * 30.44)), prev = addDays(p.startDate, Math.round((i - 1) * 30.44));
+    const inMonth = series.filter(s => s.date > prev && s.date <= date && !s.baseline);
+    const act = inMonth[inMonth.length - 1] || null;
+    milestones.push({ i, date, prev, pw: projW(date), pwa: projWaist(date), act, state: today > date ? 'done' : today > prev ? 'now' : 'next' });
+  }
+  const goalProgress = tgt ? clamp((startW - weight) / (startW - tgt) * 100, 0, 100) : null;
+  return { p, series, weight, waist, age, male, bmi, bmr, tdee, whtr, ind, overall, bf, floor, opts, maint, rec, chosen, target,
+    macro: { protein, fat, carbs, fiber }, totalDays, end, dayN, startW, startWaist, tgt, projW, projWaist, weeksToTarget, targetDate,
+    neededPerWeek, milestones, goalProgress, idealLo: 18.5 * hm * hm, idealHi: 22.9 * hm * hm };
+}
+const dayMeals = (d, date) => d.meals.filter(m => m.date === date).sort((a, b) => MEAL_TYPES.indexOf(a.type) - MEAL_TYPES.indexOf(b.type));
+const dayWorkouts = (d, date) => d.workouts.filter(w => w.date === date);
+const sumOf = (arr, k) => arr.reduce((s, x) => s + (Number(x[k]) || 0), 0);
+function weekStats(d, c) {
+  const t = todayStr(), from = addDays(t, -6);
+  const meals = d.meals.filter(m => m.date >= from && m.date <= t);
+  const days = [...new Set(meals.map(m => m.date))];
+  const wo = d.workouts.filter(w => w.date >= from && w.date <= t);
+  return { daysLogged: days.length, avgKcal: days.length ? sumOf(meals, 'kcal') / days.length : null, avgProtein: days.length ? sumOf(meals, 'protein') / days.length : null,
+    minutes: sumOf(wo.filter(w => (w.met || 4) >= 3), 'minutes'), sessions: wo.length, burn: sumOf(wo, 'kcal') };
+}
+function mealTarget(d, c, type) {
+  const pm = d.plan?.meals?.find(m => m.waktu === type);
+  return pm?.kcal || Math.round(c.target * (MEAL_SHARE[type] || .25));
+}
+function exerciseList(d, c) {
+  const p = d.profile, joint = (p.conditions || []).some(x => x.startsWith('Nyeri lutut'));
+  const heavy = c.bmi >= 30 || joint;
+  return EXERCISES.map(e => {
+    let ok = true, note = '';
+    if (e.impact === 'tinggi' && heavy) { ok = false; note = joint ? 'Belum disarankan karena keluhan lutut/sendi.' : 'Belum disarankan sampai BMI di bawah 30, untuk melindungi lutut.'; }
+    else if (e.impact === 'sedang' && c.bmi >= 32) { ok = false; note = 'Tunda dulu; mulai dari kardio low impact.'; }
+    if (e.id === 'beban' && (p.conditions || []).includes('Hipertensi')) note = 'Gunakan beban ringan-sedang dan jangan menahan napas saat mengangkat.';
+    if (e.id === 'jalan' && (p.conditions || []).some(x => x.startsWith('Diabetes'))) note = 'Jalan 10–15 menit setelah makan membantu menurunkan gula darah.';
+    let min = e.min; if (p.goal === 'jaga') min = Math.round(min * 0.85);
+    return { ...e, ok, note, min, kcal: Math.round(e.met * c.weight * min / 60) };
+  });
+}
+function todaysPicks(list, date) {
+  const ids = DAY_PLAN[parseYmd(date).getDay()];
+  const ok = list.filter(e => e.ok);
+  const picks = ids.map(id => list.find(e => e.id === id)).map(e => e && e.ok ? e : ok.find(x => x.kind === 'Kardio' && !ids.includes(x.id)));
+  return [...new Set(picks.filter(Boolean))];
+}
+
+/* ---------- AI ---------- */
+function aiErr(e) {
+  switch (e?.code) {
+    case 'not_granted': case 'sampling_disabled': case 'not_declared': case 'capability_disabled': return 'Akses AI tidak diizinkan untuk halaman ini.';
+    case 'rate_limited': return 'Terlalu banyak permintaan ke AI. Coba lagi beberapa menit lagi.';
+    case 'image_rejected': return 'Foto tidak bisa dibaca. Gunakan JPG, PNG, atau WebP.';
+    case 'images_unavailable': return 'Analisis foto tidak tersedia di tampilan ini. Isi makanan secara manual.';
+    case 'invalid_json': return 'Jawaban AI tidak terbaca. Tekan tombolnya lagi.';
+    case 'refused': return 'AI tidak memproses permintaan ini. Ubah keterangannya lalu coba lagi.';
+    case 'session_expired': return 'Sesi berakhir. Masuk lagi ke Claude.';
+    case 'cancelled': return 'Dibatalkan.';
+    default: return 'AI sedang tidak bisa dihubungi. Coba lagi sebentar lagi.';
+  }
+}
+async function runAI(key, fn) {
+  if (!S.ai) { toast('Fitur AI hanya berjalan saat halaman dibuka di Claude.'); return; }
+  S.busy[key] = true; S.err[key] = null; render();
+  try { await fn(); }
+  catch (e) { S.err[key] = aiErr(e); if (e?.code === 'not_granted' || e?.code === 'sampling_disabled') S.ai = null; }
+  finally { S.busy[key] = false; render(); }
+}
+function contextText(d, c) {
+  const p = d.profile;
+  return [
+    `Nama: ${p.name}. ${p.sex === 'L' ? 'Laki-laki' : 'Perempuan'}, ${c.age} tahun, tinggi ${p.height} cm.`,
+    `Berat saat ini ${fmt(c.weight, 1)} kg (awal ${p.startWeight} kg${c.tgt ? `, target ${c.tgt} kg` : ''}). Lingkar perut ${c.waist ? fmt(c.waist, 1) + ' cm' : 'belum diukur'} (awal ${p.startWaist ?? '-'} cm).`,
+    `BMI ${fmt(c.bmi, 1)} = ${c.ind.bmi.label} (klasifikasi Asia-Pasifik). Rasio lingkar perut/tinggi ${c.whtr ? fmt(c.whtr, 2) : '-'}. Estimasi lemak tubuh ${fmt(c.bf, 0)}%. Status keseluruhan: ${['baik', 'sedang', 'buruk'][c.overall]}.`,
+    `BMR (Mifflin-St Jeor) ${fmt(c.bmr)} kkal, TDEE ${fmt(c.tdee)} kkal (faktor aktivitas ${p.activity}). Target asupan ${fmt(c.target)} kkal/hari (opsi ${c.chosen.label}, defisit ${fmt(c.chosen.def)} kkal). Target makro: protein ${c.macro.protein} g, karbohidrat ${c.macro.carbs} g, lemak ${c.macro.fat} g, serat ${c.macro.fiber} g.`,
+    `Tujuan: ${GOALS[p.goal]}. Program ${p.months} bulan mulai ${p.startDate}, sekarang hari ke-${c.dayN} dari ${c.totalDays}.`,
+    `Pola kerja: ${p.work || '-'}. Tidur rata-rata ${p.sleep ?? '-'} jam. Tingkat stres: ${p.stress || '-'}. Air minum ${p.water ?? '-'} L/hari.`,
+    `Kondisi kesehatan: ${(p.conditions || []).join(', ') || 'tidak ada'}. Alergi/pantangan: ${p.allergy || '-'}. Preferensi makanan: ${p.pref || '-'}.`,
+    `Pilihan menu: ${prefsText(p.mealPrefs)}`,
+  ].join('\n');
+}
+
+async function aiAnalysis() {
+  const d = D(), c = compute(d), w = weekStats(d, c);
+  const trend = c.series.slice(-10).map(s => `${s.date}: ${s.weight} kg${s.waist ? `, perut ${s.waist} cm` : ''}`).join('; ');
+  const prompt = `Kamu adalah ahli gizi klinis dan pelatih kebugaran. Analisis kondisi pengguna ini secara jujur dan spesifik. Cari akar masalah (pola makan, aktivitas, tidur, stres, pola kerja, kondisi kesehatan, risiko lemak perut), bukan saran umum.
+
+${contextText(d, c)}
+Riwayat ukur: ${trend}.
+7 hari terakhir: ${w.daysLogged} hari tercatat makan, rata-rata ${w.avgKcal ? fmt(w.avgKcal) + ' kkal' : 'tidak ada data'}, protein rata-rata ${w.avgProtein ? fmt(w.avgProtein) + ' g' : '-'}; olahraga ${w.minutes} menit (${w.sessions} sesi).
+
+Balas HANYA JSON berbahasa Indonesia dengan bentuk:
+{"ringkasan":"2-3 kalimat kondisi saat ini","status":"baik|sedang|buruk","masalah":[{"judul":"singkat","detail":"1-2 kalimat penjelasan dan dampaknya","tingkat":"tinggi|sedang|rendah"}],"prioritas":["3-5 langkah konkret minggu ini"],"peringatan":"hal yang perlu dikonsultasikan ke dokter, atau string kosong"}
+Maksimal 5 masalah, urutkan dari yang paling berdampak.`;
+  const res = await S.ai.json(prompt, { cache: false });
+  if (!res || !Array.isArray(res.masalah)) throw { code: 'invalid_json' };
+  await put('diet', 'analysis', { ...res, at: new Date().toISOString() });
+}
+async function aiPlan() {
+  const d = D(), c = compute(d), p = d.profile;
+  const prompt = `Kamu ahli gizi Indonesia. Susun meal plan SATU HARI yang bisa diulang dengan variasi, untuk pengguna berikut.
+
+${contextText(d, c)}
+
+Aturan: total energi ${fmt(c.target)} kkal (toleransi ±5%), protein ≥ ${c.macro.protein} g, gunakan makanan sehari-hari Indonesia yang mudah didapat (rumahan, warteg, kantin kantor/lapangan), sesuaikan dengan kondisi kesehatan dan pantangan, sebutkan porsi dalam gram dan ukuran rumah tangga. Berikan 4-5 waktu makan dengan jam yang cocok untuk pola kerjanya. Setiap waktu makan beri satu alternatif dengan kalori setara.
+
+WAJIB patuhi pilihan menu pengguna, termasuk pada alternatif: ${prefsText(p.mealPrefs)} Jika pengguna menyebut menu pilihan, jadikan menu itu dasar waktu makan tersebut, lalu lengkapi dengan lauk, sayur, atau buah seperlunya agar energi dan protein cukup. Jika tanpa nasi, ganti sumber karbohidrat dengan yang bukan nasi (misalnya kentang, ubi, roti gandum, oat, jagung) atau kurangi karbohidrat dan alihkan ke makan lain.
+
+Balas HANYA JSON:
+{"catatan":"1-2 kalimat alasan susunan ini","meals":[{"waktu":"Sarapan|Makan siang|Camilan|Makan malam","jam":"06.30","menu":"...","porsi":"...","kcal":0,"protein":0,"karbo":0,"lemak":0,"alternatif":"..."}],"tips":["3-4 tips praktis"],"hindari":["3-4 makanan/kebiasaan yang perlu dihindari"]}`;
+  const res = await S.ai.json(prompt, { cache: false });
+  if (!res || !Array.isArray(res.meals)) throw { code: 'invalid_json' };
+  S.lastPlan = { ...res, targetKcal: c.target, deficit: c.chosen.key, prefs: p.mealPrefs || {}, at: new Date().toISOString() };
+  await put('diet', 'plan', S.lastPlan);
+}
+function curPlan() {
+  const s = S.data.diet.plan, l = S.lastPlan;
+  return l && (!s || (s.at || '') < l.at) ? l : s;
+}
+function cleanSvg(t) {
+  const m = String(t || '').match(/<svg[\s\S]*<\/svg>/i); if (!m) return null;
+  let s = m[0].replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, '').replace(/\son\w+\s*=\s*("[^"]*"|'[^']*')/gi, '').replace(/\s(xlink:)?href\s*=\s*("(?!#)[^"]*"|'(?!#)[^']*')/gi, '');
+  if (!/xmlns=/.test(s)) s = s.replace(/<svg/i, '<svg xmlns="http://www.w3.org/2000/svg"');
+  return s.length <= 30000 ? s : null;
+}
+const svgSrc = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
+const svgPrompt = m => `Gambarkan ilustrasi makanan bergaya flat vektor yang menggugah selera untuk menu Indonesia ini: "${m.menu}"${m.porsi ? ` (porsi: ${m.porsi})` : ''}.
+Tampilan dari atas (top-down) di atas piring atau mangkuk, setiap komponen makanan terlihat jelas dengan warna yang realistis (misalnya telur rebus dibelah dengan kuning telur, sayur hijau, lauk kecokelatan), tambahkan bayangan lembut, gradasi halus, dan detail kecil seperti taburan atau garnish. Latar belakang taplak atau meja polos berwarna terang. Jangan ada teks atau huruf apa pun.
+Gunakan hanya elemen SVG dasar: g, defs, linearGradient, radialGradient, stop, circle, ellipse, rect, path, polygon, polyline, line. Atribut wajib pada root: xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220". Panjang maksimal 9000 karakter.
+Balas HANYA kode SVG lengkap dari <svg sampai </svg>, tanpa penjelasan dan tanpa code fence.`;
+async function aiPlanImages(only) {
+  const plan = curPlan(); if (!plan?.meals?.length) return;
+  const idx = plan.meals.map((_, i) => i).filter(i => only != null ? i === only : !plan.meals[i].svg);
+  if (!idx.length) return;
+  S.imgBusy = new Set(idx); render();
+  let results;
+  try { results = await Promise.allSettled(idx.map(i => S.ai(svgPrompt(plan.meals[i]), { cache: false }).then(r => cleanSvg(r.text)))); }
+  finally { S.imgBusy = null; }
+  const hard = results.find(r => r.status === 'rejected' && ['not_granted', 'sampling_disabled', 'rate_limited'].includes(r.reason?.code));
+  const cur = curPlan(); if (!cur || cur.at !== plan.at) return;
+  const meals = cur.meals.map((m, i) => { const k = idx.indexOf(i); const v = k >= 0 && results[k].status === 'fulfilled' ? results[k].value : null; return v ? { ...m, svg: v } : m; });
+  const fails = results.filter(r => r.status !== 'fulfilled' || !r.value).length;
+  if (fails < results.length) { S.lastPlan = { ...cur, meals }; await put('diet', 'plan', S.lastPlan); }
+  if (hard) throw hard.reason;
+  if (fails) S.err.img = `${fails} dari ${results.length} gambar gagal dibuat. Tekan “Buat gambar menu” untuk mencoba lagi.`;
+}
+function foodPrompt(d, c, type, note, fromPhoto) {
+  return `Kamu ahli gizi Indonesia. ${fromPhoto ? 'Foto ini adalah makanan/minuman pengguna.' : 'Pengguna mendeskripsikan makanannya sebagai berikut.'} Waktu makan: ${type}. ${note ? 'Keterangan pengguna: "' + note + '".' : ''}
+Identifikasi setiap item, perkirakan porsi (gram dan ukuran rumah tangga), kalori dan makronutrien. Gunakan acuan Tabel Komposisi Pangan Indonesia bila relevan, dan perhitungkan minyak goreng, santan, gula, atau saus yang tidak terlihat.
+Target pengguna untuk ${type}: sekitar ${mealTarget(d, c, type)} kkal; target harian ${fmt(c.target)} kkal. Kondisi kesehatan: ${(d.profile.conditions || []).join(', ') || 'tidak ada'}.
+Balas HANYA JSON: {"bukanMakanan":false,"nama":"nama singkat hidangan","items":[{"nama":"Nasi putih","porsi":"150 g (1 centong)","kcal":195}],"kcal":0,"protein":0,"karbo":0,"lemak":0,"keyakinan":"tinggi|sedang|rendah","catatan":"1-2 kalimat: apakah sesuai target waktu makan ini dan saran perbaikan"}
+Jika ${fromPhoto ? 'foto' : 'deskripsi'} bukan makanan, isi "bukanMakanan": true dan field lain kosong.`;
+}
+async function aiPhoto() {
+  const d = D(), c = compute(d), dr = S.draft;
+  dr.type = $('#draft-type')?.value || dr.type; dr.note = $('#draft-note')?.value || '';
+  const res = await S.ai.json(foodPrompt(d, c, dr.type, dr.note, true), { images: [dr.file], cache: false });
+  if (res?.bukanMakanan) { S.err.photo = 'Foto ini tidak terlihat seperti makanan. Coba foto lain.'; return; }
+  if (!res || res.kcal == null) throw { code: 'invalid_json' };
+  dr.result = res;
+}
+async function aiText() {
+  const d = D(), c = compute(d);
+  const desc = $('#man-name')?.value.trim(), type = $('#man-type')?.value || 'Makan siang';
+  if (!desc) { S.err.text = 'Tulis dulu makanannya, misalnya "nasi padang rendang + sayur nangka".'; return; }
+  const res = await S.ai.json(foodPrompt(d, c, type, desc, false), { cache: false });
+  if (res?.bukanMakanan) { S.err.text = 'Deskripsi tidak dikenali sebagai makanan.'; return; }
+  if (!res || res.kcal == null) throw { code: 'invalid_json' };
+  S.manualAI = { ...res, type, desc };
+}
+function dayContext(d, c, date) {
+  const meals = dayMeals(d, date), wo = dayWorkouts(d, date);
+  const plan = d.plan?.meals?.map(m => `${m.waktu}: ${m.menu} (${m.kcal} kkal)`).join('; ') || 'belum ada meal plan dari AI';
+  return `${contextText(d, c)}
+Meal plan: ${plan}.
+Tanggal ${date}. Makanan tercatat: ${meals.length ? meals.map(m => `${m.type}: ${m.name} — ${m.kcal} kkal, P ${m.protein ?? '?'} g, K ${m.carbs ?? '?'} g, L ${m.fat ?? '?'} g`).join('; ') : 'belum ada'}.
+Total: ${fmt(sumOf(meals, 'kcal'))} kkal, protein ${fmt(sumOf(meals, 'protein'))} g. Olahraga: ${wo.length ? wo.map(w => `${w.name} ${w.minutes} menit (${w.kcal} kkal)`).join(', ') : 'belum ada'}.`;
+}
+async function aiReview() {
+  const d = D(), c = compute(d), date = S.date;
+  const prompt = `Kamu ahli gizi yang menilai catatan makan harian pengguna terhadap meal plan dan target kalorinya. Nilai secara jujur dan spesifik pada makanan yang tercatat.
+
+${dayContext(d, c, date)}
+
+Balas HANYA JSON: {"status":"sesuai|perlu_perbaikan|melebihi","skor":0,"ringkasan":"2 kalimat","baik":["hal yang sudah tepat"],"perbaiki":["perbaikan konkret"],"berikutnya":"saran untuk sisa hari ini atau besok"}
+skor 0-100.`;
+  const res = await S.ai.json(prompt, { cache: false });
+  if (!res || !res.status) throw { code: 'invalid_json' };
+  const doc = S.data.reviews[date] || { messages: [] };
+  await put('reviews', date, { messages: [...(doc.messages || []), { role: 'ai', kind: 'review', data: res, at: new Date().toISOString() }] });
+}
+async function aiChat() {
+  const box = $('#chat-input'); const text = box?.value.trim();
+  if (!text) return;
+  const d = D(), c = compute(d), date = S.date;
+  const doc = S.data.reviews[date] || { messages: [] };
+  const msgs = [...(doc.messages || []), { role: 'user', kind: 'chat', text, at: new Date().toISOString() }];
+  await put('reviews', date, { messages: msgs });
+  box.value = ''; delete box.dataset.dirty;
+  const turns = [{ role: 'user', content: `Kamu ahli gizi pendamping diet. Jawab singkat (maks 120 kata), dalam bahasa Indonesia, berdasarkan data ini:\n\n${dayContext(d, c, date)}` }];
+  for (const m of msgs.slice(-12)) turns.push({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.kind === 'review' ? reviewText(m.data) : m.text });
+  const { text: reply } = await S.ai(turns, { cache: false });
+  await put('reviews', date, { messages: [...msgs, { role: 'ai', kind: 'chat', text: reply, at: new Date().toISOString() }] });
+}
+const reviewText = r => `Penilaian: ${r.status} (skor ${r.skor}). ${r.ringkasan} Sudah baik: ${(r.baik || []).join('; ')}. Perbaiki: ${(r.perbaiki || []).join('; ')}. Berikutnya: ${r.berikutnya || ''}`;
+
+/* ---------- chart ---------- */
+const CH = {};
+function lineChart(id, actual, proj, { unit, dec = 1, color }) {
+  const W = 680, H = 230, m = { l: 46, r: 64, t: 18, b: 30 };
+  const all = [...actual, ...proj];
+  if (!all.length) return '<div class="empty">Belum ada data.</div>';
+  const ts = all.map(p => parseYmd(p.date).getTime());
+  let x0 = Math.min(...ts), x1 = Math.max(...ts); if (x1 === x0) x1 = x0 + 7 * 864e5;
+  const vs = all.map(p => p.v);
+  let lo = Math.min(...vs), hi = Math.max(...vs);
+  const span = Math.max(hi - lo, 1);
+  const step = [0.5, 1, 2, 5, 10, 20].find(s => span / s <= 5) || 20;
+  let y0 = Math.floor((lo - step * .3) / step) * step, y1 = Math.ceil((hi + step * .3) / step) * step; if (y1 === y0) y1 = y0 + step;
+  const X = t => m.l + (t - x0) / (x1 - x0) * (W - m.l - m.r);
+  const Y = v => m.t + (1 - (v - y0) / (y1 - y0)) * (H - m.t - m.b);
+  let g = '';
+  for (let v = y0; v <= y1 + 1e-9; v += step) g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${m.l - 8}" y="${Y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono, monospace">${fmt(v, step < 1 ? 1 : 0)}</text>`;
+  for (let i = 0; i <= 4; i++) { const t = x0 + (x1 - x0) * i / 4; const lab = new Date(t).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }); g += `<text x="${X(t)}" y="${H - 8}" text-anchor="${i === 0 ? 'start' : i === 4 ? 'end' : 'middle'}" font-size="11" fill="var(--muted)">${lab}</text>`; }
+  const tx = todayStr(), tt = parseYmd(tx).getTime();
+  if (tt >= x0 && tt <= x1) g += `<line x1="${X(tt)}" x2="${X(tt)}" y1="${m.t}" y2="${H - m.b}" stroke="var(--ink-2)" stroke-width="1" stroke-dasharray="2 3" opacity=".5"/><text x="${X(tt) + 4}" y="${m.t + 10}" font-size="10" fill="var(--muted)">hari ini</text>`;
+  const path = pts => pts.map((p, i) => `${i ? 'L' : 'M'}${X(parseYmd(p.date).getTime()).toFixed(1)},${Y(p.v).toFixed(1)}`).join('');
+  if (proj.length) { const lp = proj[proj.length - 1]; g += `<path d="${path(proj)}" fill="none" stroke="var(--proj)" stroke-width="2" stroke-dasharray="6 5"/><text x="${X(parseYmd(lp.date).getTime()) + 6}" y="${Y(lp.v) + 4}" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono, monospace">${fmt(lp.v, dec)}</text>`; }
+  if (actual.length) {
+    g += `<path d="${path(actual)}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    actual.forEach(p => { g += `<circle cx="${X(parseYmd(p.date).getTime())}" cy="${Y(p.v)}" r="4" fill="${color}" stroke="var(--surface)" stroke-width="2"/>`; });
+    const la = actual[actual.length - 1];
+    g += `<text x="${X(parseYmd(la.date).getTime()) + 8}" y="${Y(la.v) - 8}" font-size="12" font-weight="600" fill="var(--ink)" font-family="IBM Plex Mono, monospace">${fmt(la.v, dec)} ${unit}</text>`;
+  }
+  g += `<line class="cx" x1="0" x2="0" y1="${m.t}" y2="${H - m.b}" stroke="var(--ink-2)" stroke-width="1" visibility="hidden"/><circle class="cd" r="6" fill="${color}" stroke="var(--surface)" stroke-width="2" visibility="hidden"/>`;
+  g += `<rect class="hit" data-chart="${id}" x="${m.l}" y="${m.t}" width="${W - m.l - m.r}" height="${H - m.t - m.b}" fill="transparent"/>`;
+  CH[id] = { W, X, Y, x0, x1, actual, proj, unit, dec, m };
+  return `<div class="chart" id="ch-${id}"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Grafik ${unit}">${g}</svg><div class="tt" hidden></div></div>`;
+}
+document.addEventListener('pointermove', e => {
+  const hit = e.target.closest?.('.hit');
+  document.querySelectorAll('.chart').forEach(ch => { if (!hit || !ch.contains(hit)) { ch.querySelector('.tt').hidden = true; ch.querySelector('.cx')?.setAttribute('visibility', 'hidden'); ch.querySelector('.cd')?.setAttribute('visibility', 'hidden'); } });
+  if (!hit) return;
+  const c = CH[hit.dataset.chart]; if (!c) return;
+  const wrap = hit.closest('.chart'), svg = wrap.querySelector('svg'), r = svg.getBoundingClientRect();
+  const sx = (e.clientX - r.left) * c.W / r.width;
+  const pts = c.actual.length ? c.actual : c.proj;
+  let best = pts[0], bd = Infinity;
+  for (const p of pts) { const d = Math.abs(c.X(parseYmd(p.date).getTime()) - sx); if (d < bd) { bd = d; best = p; } }
+  const px = c.X(parseYmd(best.date).getTime()), py = c.Y(best.v);
+  wrap.querySelector('.cx').setAttribute('x1', px); wrap.querySelector('.cx').setAttribute('x2', px); wrap.querySelector('.cx').setAttribute('visibility', 'visible');
+  const cd = wrap.querySelector('.cd'); cd.setAttribute('cx', px); cd.setAttribute('cy', py); cd.setAttribute('visibility', 'visible');
+  const pj = c.proj.length ? c.proj.reduce((a, b) => Math.abs(parseYmd(b.date) - parseYmd(best.date)) < Math.abs(parseYmd(a.date) - parseYmd(best.date)) ? b : a) : null;
+  const tt = wrap.querySelector('.tt');
+  tt.innerHTML = `${esc(fmtDate(best.date))}<br><b>${fmt(best.v, c.dec)} ${esc(c.unit)}</b>${pj && c.actual.length ? `<br><span style="opacity:.75">proyeksi ${fmt(pj.v, c.dec)}</span>` : ''}`;
+  tt.style.left = clamp(px * r.width / c.W, 60, r.width - 60) + 'px'; tt.style.top = (py * r.width / c.W) + 'px'; tt.hidden = false;
+});
+
+/* ---------- small renderers ---------- */
+const LVL = ['Baik', 'Sedang', 'Buruk'];
+function dirCls(delta, goal) { if (delta == null || Math.abs(delta) < 1e-9) return 'flat'; if (goal === 'jaga') return Math.abs(delta) < 0.5 ? 'flat' : delta > 0 ? 'up' : 'down'; return delta < 0 ? 'down' : 'up'; }
+function deltaTxt(delta, dec, unit) { if (delta == null) return '–'; const s = delta > 0 ? '+' : delta < 0 ? '−' : '±'; return `${s}${fmt(Math.abs(delta), dec)}${unit ? ' ' + unit : ''}`; }
+function pctTxt(delta, base) { if (delta == null || !base) return '–'; const p = delta / base * 100; return `${p > 0 ? '+' : p < 0 ? '−' : '±'}${fmt(Math.abs(p), 1)}%`; }
+function demoBanner(d) {
+  if (!d.demo) return '';
+  return `<div class="banner"><p><b>Anda sedang melihat data contoh.</b> Semua angka di bawah milik pengguna fiktif. Isi profil Anda agar perhitungan, meal plan, dan tracking memakai data Anda sendiri.</p><a class="btn primary" href="#profil">Isi profil saya</a></div>`;
+}
+function aiNote() { return S.ai ? '' : `<p class="tiny muted">Fitur AI aktif saat halaman ini dibuka di Claude dan Anda mengizinkannya.</p>`; }
+function busyBtn(key, label, action, cls = 'primary', disabled = false) {
+  return S.busy[key] ? `<span class="thinking">AI sedang menganalisis…</span>` : `<button class="btn ${cls}" data-action="${action}" ${(!S.ai || disabled) ? 'disabled' : ''}>${label}</button>`;
+}
+const errLine = key => S.err[key] ? `<p class="small" style="color:var(--bad)">${esc(S.err[key])}</p>` : '';
+function bmiScale(bmi) {
+  const lo = 15, hi = 35, pos = v => (clamp(v, lo, hi) - lo) / (hi - lo) * 100;
+  const bands = [[15, 18.5, 'var(--warn-dot)'], [18.5, 23, 'var(--good)'], [23, 25, 'var(--warn-dot)'], [25, 30, 'var(--bad)'], [30, 35, 'color-mix(in srgb,var(--bad) 70%,var(--ink))']];
+  return `<div class="scale" aria-label="Skala BMI">${bands.map(([a, b, col]) => `<div style="width:${pos(b) - pos(a)}%;background:${col}"></div>`).join('')}
+    <span class="mk" style="left:${pos(bmi)}%">${fmt(bmi, 1)}</span>${[18.5, 23, 25, 30].map(v => `<span class="tk" style="left:${pos(v)}%">${fmt(v, 1)}</span>`).join('')}</div>`;
+}
+
+/* ---------- views ---------- */
+function vRingkasan() {
+  const d = D(), c = compute(d), p = d.profile, t = todayStr();
+  const meals = dayMeals(d, t), wo = dayWorkouts(d, t);
+  const intake = sumOf(meals, 'kcal'), burn = sumOf(wo, 'kcal');
+  const wDelta = c.weight - c.startW, waDelta = c.waist && c.startWaist ? c.waist - c.startWaist : null;
+  const an = d.analysis;
+  const progPct = c.totalDays ? c.dayN / c.totalDays * 100 : 0;
+  const ind = [['Indeks massa tubuh (BMI)', fmt(c.bmi, 1), c.ind.bmi], ['Lingkar perut', c.waist ? fmt(c.waist, 1) + ' cm' : '–', c.ind.waist], ['Rasio lingkar perut / tinggi', c.whtr ? fmt(c.whtr, 2) : '–', c.ind.whtr]];
+  const actual = c.series.map(s => ({ date: s.date, v: s.weight }));
+  const proj = []; for (let dd = 0; dd <= c.totalDays; dd += 7) proj.push({ date: addDays(p.startDate, dd), v: c.projW(addDays(p.startDate, dd)) });
+  return `${demoBanner(d)}
+  <div class="page-head"><div class="stack" style="gap:6px"><span class="eyebrow">${esc(GOALS[p.goal])} · ${p.months} bulan</span><h1>Halo, ${esc(p.name.split(' ')[0])}</h1>
+    <p>Hari ke-<b class="num">${c.dayN}</b> dari <span class="num">${c.totalDays}</span> · selesai ${esc(fmtDate(c.end))}</p></div>
+    <div style="min-width:220px;flex:0 1 300px" class="stack"><div class="spread small"><span class="muted">Waktu program</span><b class="num">${fmt(progPct, 0)}%</b></div><div class="bar"><i style="width:${progPct}%"></i></div>
+    ${c.goalProgress != null ? `<div class="spread small"><span class="muted">Menuju target ${fmt(c.tgt, 1)} kg</span><b class="num">${fmt(c.goalProgress, 0)}%</b></div><div class="bar teal"><i style="width:${c.goalProgress}%"></i></div>` : ''}</div></div>
+
+  <div class="grid g2">
+    <section class="card">
+      <div class="card-head"><div><span class="eyebrow">Kondisi saat ini</span></div><span class="pill n">Standar Asia-Pasifik</span></div>
+      <div class="status-hero">
+        <div class="signal" aria-hidden="true"><span class="s2 ${c.overall === 2 ? 'on' : ''}"></span><span class="s1 ${c.overall === 1 ? 'on' : ''}"></span><span class="s0 ${c.overall === 0 ? 'on' : ''}"></span></div>
+        <div class="stack" style="gap:4px"><div class="status-title">${LVL[c.overall]}</div>
+          <p class="small muted">${c.overall === 0 ? 'Semua indikator dalam rentang sehat. Fokus menjaga konsistensi.' : c.overall === 1 ? 'Ada indikator yang mulai berisiko. Perbaikan kecil yang konsisten sudah cukup.' : 'Beberapa indikator berada di zona risiko. Lemak tubuh, terutama di perut, perlu diturunkan bertahap.'}</p></div>
+      </div>
+      ${bmiScale(c.bmi)}
+      <div>${ind.map(([n, v, i]) => i ? `<div class="ind l${i.lvl}"><span class="dot"></span><span>${n}</span><span class="v">${v}</span><span class="t"><b class="pill l${i.lvl}" style="padding:1px 8px">${i.label}</b> ${i.note}</span></div>` : `<div class="ind"><span class="dot" style="background:var(--line)"></span><span>${n}</span><span class="v">–</span><span class="t">Isi lingkar perut di Progress Tracker.</span></div>`).join('')}</div>
+    </section>
+
+    <section class="card stack" style="gap:16px">
+      <div class="card-head" style="margin:0"><span class="eyebrow">Energi harian</span><a class="small" href="#menu">Ubah defisit</a></div>
+      <div class="grid g2" style="gap:16px">
+        <div class="tile"><span class="lbl">Kalori terbakar saat istirahat (BMR)</span><span class="val">${fmt(c.bmr)}<small>kkal</small></span><span class="sub">Rumus Mifflin-St Jeor</span></div>
+        <div class="tile"><span class="lbl">Kebutuhan harian (TDEE)</span><span class="val">${fmt(c.tdee)}<small>kkal</small></span><span class="sub">BMR × ${String(p.activity).replace('.', ',')} (${esc(ACTIVITY.find(a => a.v === p.activity)?.label || '')})</span></div>
+        <div class="tile"><span class="lbl">Target asupan</span><span class="val" style="color:var(--accent)">${fmt(c.target)}<small>kkal</small></span><span class="sub">Defisit ${esc(c.chosen.label.toLowerCase())} · ${fmt(c.chosen.perWeek, 2)} kg/minggu</span></div>
+        <div class="tile"><span class="lbl">Estimasi lemak tubuh</span><span class="val">${fmt(c.bf, 0)}<small>%</small></span><span class="sub">Rumus Deurenberg dari BMI</span></div>
+      </div>
+      <div class="stack" style="gap:6px;border-top:1px solid var(--line);padding-top:14px">
+        <div class="spread small"><span><b>Hari ini</b> · makan ${fmt(intake)} dari ${fmt(c.target)} kkal</span><span class="num">${fmt(c.target - intake + burn)} kkal tersisa</span></div>
+        <div class="bar ${intake > c.target + burn ? 'over' : ''}"><i style="width:${clamp(intake / (c.target + burn || 1) * 100, 0, 100)}%"></i></div>
+        <span class="tiny muted">Olahraga hari ini membakar ${fmt(burn)} kkal${burn ? ' (ditambahkan ke jatah)' : ''}.</span>
+      </div>
+    </section>
+  </div>
+
+  <section class="grid g4">
+    <div class="card tile"><span class="lbl">Berat badan</span><span class="val">${fmt(c.weight, 1)}<small>kg</small></span><span class="sub ${dirCls(wDelta, p.goal)}">${deltaTxt(wDelta, 1, 'kg')} · ${pctTxt(wDelta, c.startW)} sejak awal</span></div>
+    <div class="card tile"><span class="lbl">Lingkar perut</span><span class="val">${c.waist ? fmt(c.waist, 1) : '–'}<small>cm</small></span><span class="sub ${dirCls(waDelta, p.goal)}">${deltaTxt(waDelta, 1, 'cm')} · ${pctTxt(waDelta, c.startWaist)} sejak awal</span></div>
+    <div class="card tile"><span class="lbl">Berat ideal (BMI 18,5–22,9)</span><span class="val">${fmt(c.idealLo, 0)}–${fmt(c.idealHi, 0)}<small>kg</small></span><span class="sub">Untuk tinggi ${p.height} cm</span></div>
+    <div class="card tile"><span class="lbl">Perkiraan capai target</span><span class="val" style="font-size:1.15rem">${c.targetDate ? esc(fmtDate(c.targetDate)) : '–'}</span><span class="sub">${c.targetDate ? (c.targetDate <= c.end ? 'Dalam masa program' : 'Melewati masa program') : 'Isi target berat di Profil'}</span></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><div><h2>Berat badan vs proyeksi</h2><p>Garis putus-putus adalah proyeksi dari defisit yang Anda pilih (7.700 kkal ≈ 1 kg lemak).</p></div>
+      <div class="legend"><span style="color:var(--accent)"><i></i><b style="color:var(--ink-2);font-weight:500">Aktual</b></span><span style="color:var(--proj)"><i class="dash"></i><b style="color:var(--ink-2);font-weight:500">Proyeksi</b></span></div></div>
+    ${lineChart('w', actual, proj, { unit: 'kg', color: 'var(--accent)' })}
+  </section>
+
+  <section class="card">
+    <div class="card-head"><div><h2>Analisis AI</h2><p>AI membaca profil, ukuran tubuh, catatan makan, dan olahraga Anda untuk menemukan masalah utamanya.</p></div>
+      ${d.demo ? '' : busyBtn('analysis', an ? 'Analisis ulang' : 'Analisis kondisi saya', 'analysis')}</div>
+    ${errLine('analysis')}
+    ${an ? `<div class="ai-box"><div class="spread"><span class="pill ${an.status === 'baik' ? 'l0' : an.status === 'buruk' ? 'l2' : 'l1'}"><span class="dot ${an.status === 'baik' ? 'l0' : an.status === 'buruk' ? 'l2' : 'l1'}" style="width:8px;height:8px;box-shadow:none"></span>${esc(an.status)}</span><span class="tiny muted">Dianalisis ${esc(new Date(an.at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }))}</span></div>
+      <p>${esc(an.ringkasan)}</p>
+      <div>${(an.masalah || []).map(m => `<div class="prob"><span class="pill ${m.tingkat === 'tinggi' ? 'l2' : m.tingkat === 'sedang' ? 'l1' : 'n'}">${esc(m.tingkat)}</span><div><b>${esc(m.judul)}</b><p class="small" style="color:var(--ink-2)">${esc(m.detail)}</p></div></div>`).join('')}</div>
+      ${an.prioritas?.length ? `<div><h3 style="margin-bottom:6px">Prioritas minggu ini</h3><ol class="small" style="margin:0;padding-left:20px">${an.prioritas.map(x => `<li>${esc(x)}</li>`).join('')}</ol></div>` : ''}
+      ${an.peringatan ? `<p class="small" style="color:var(--bad)"><b>Perlu konsultasi:</b> ${esc(an.peringatan)}</p>` : ''}</div>`
+      : `<div class="empty">${d.demo ? 'Analisis tersedia setelah Anda mengisi profil.' : 'Belum ada analisis. Tekan “Analisis kondisi saya”.'}</div>`}
+    ${aiNote()}
+  </section>
+
+  <section class="card">
+    <div class="card-head"><div><h2>Timeline program</h2><p>Target per bulan dari proyeksi, dibandingkan pengukuran terakhir di bulan itu. Lingkar perut diperkirakan turun ±0,8 cm per kg.</p></div></div>
+    <div class="tl">${c.milestones.map(ms => `<div class="tl-item ${ms.state}"><div class="spread"><span class="m">Bulan ${ms.i}</span>${ms.state === 'now' ? '<span class="pill a">berjalan</span>' : ms.state === 'done' ? (ms.act ? (ms.act.weight <= ms.pw + 0.3 ? '<span class="pill l0">tercapai</span>' : '<span class="pill l1">di belakang</span>') : '<span class="pill n">tanpa data</span>') : ''}</div>
+      <span class="tiny muted">s/d ${esc(fmtDate(ms.date, { day: 'numeric', month: 'short' }))}</span>
+      <div class="r"><span class="muted">Target</span><b>${fmt(ms.pw, 1)} kg</b></div>${ms.pwa ? `<div class="r"><span class="muted">Perut</span><b>${fmt(ms.pwa, 1)} cm</b></div>` : ''}
+      <div class="r"><span class="muted">Aktual</span><b>${ms.act ? fmt(ms.act.weight, 1) + ' kg' : '–'}</b></div></div>`).join('')}</div>
+  </section>`;
+}
+
+function vProfil() {
+  const d = D(), p = S.data.diet.profile || {}, isNew = !S.data.diet.profile;
+  const v = (k, def = '') => esc(p[k] ?? def);
+  const sel = (id, opts, cur) => `<select id="${id}" name="${id}">${opts.map(([val, lab]) => `<option value="${esc(val)}" ${String(cur) === String(val) ? 'selected' : ''}>${esc(lab)}</option>`).join('')}</select>`;
+  let calc = '';
+  if (!isNew) { const c = compute(d); calc = `<div class="row small muted">BMI ${fmt(c.bmi, 1)} · BMR ${fmt(c.bmr)} kkal · TDEE ${fmt(c.tdee)} kkal · Usia ${c.age} tahun</div>`; }
+  return `<div class="page-head"><div class="stack" style="gap:6px"><span class="eyebrow">Profil pribadi</span><h1>${isNew ? 'Mulai program diet' : 'Data diri & penentu diet'}</h1>
+    <p>Angka di sini menentukan kebutuhan kalori, status kesehatan, meal plan, dan saran olahraga. Gaya hidup dan kondisi kesehatan dipakai AI untuk mencari akar masalah.</p></div></div>
+  <form class="card stack" style="gap:24px" id="profile-form">
+    <fieldset><legend>Data dasar</legend><div class="form-grid">
+      <label class="f">Nama<input type="text" id="pf-name" required value="${v('name')}" autocomplete="name"></label>
+      <label class="f">Jenis kelamin${sel('pf-sex', [['L', 'Laki-laki'], ['P', 'Perempuan']], p.sex || 'L')}</label>
+      <label class="f">Tanggal lahir<input type="date" id="pf-birth" required value="${v('birth')}"></label>
+      <label class="f">Tinggi badan (cm)<input type="number" id="pf-height" required min="120" max="230" step="0.1" value="${v('height')}"></label>
+    </div></fieldset>
+    <fieldset><legend>Ukuran awal & target</legend><div class="form-grid">
+      <label class="f">Berat badan awal (kg)<input type="number" id="pf-sw" required min="30" max="300" step="0.1" value="${v('startWeight')}"></label>
+      <label class="f">Lingkar perut awal (cm)<span class="hint">Ukur sejajar pusar, setelah buang napas</span><input type="number" id="pf-swa" min="40" max="200" step="0.1" value="${v('startWaist')}"></label>
+      <label class="f">Target berat (kg)<span class="hint">Opsional</span><input type="number" id="pf-tw" min="30" max="300" step="0.1" value="${v('targetWeight')}"></label>
+      <label class="f">Tingkat aktivitas${sel('pf-act', ACTIVITY.map(a => [a.v, `${a.label} — ${a.desc}`]), p.activity || 1.375)}</label>
+    </div></fieldset>
+    <fieldset><legend>Tujuan & durasi program</legend><div class="form-grid">
+      <label class="f">Tujuan diet${sel('pf-goal', Object.entries(GOALS), p.goal || 'turun')}</label>
+      <label class="f">Lama program${sel('pf-months', [1, 2, 3, 4, 5, 6, 8, 9, 12].map(n => [n, n + ' bulan']), p.months || 3)}</label>
+      <label class="f">Tanggal mulai<input type="date" id="pf-start" required value="${v('startDate', todayStr())}"></label>
+    </div></fieldset>
+    <fieldset><legend>Gaya hidup</legend><div class="form-grid">
+      <label class="f">Pola kerja${sel('pf-work', WORK.map(w => [w, w]), p.work || WORK[0])}</label>
+      <label class="f">Rata-rata tidur (jam/malam)<input type="number" id="pf-sleep" min="2" max="14" step="0.5" value="${v('sleep', 7)}"></label>
+      <label class="f">Tingkat stres${sel('pf-stress', [['rendah', 'Rendah'], ['sedang', 'Sedang'], ['tinggi', 'Tinggi']], p.stress || 'sedang')}</label>
+      <label class="f">Air minum (liter/hari)<input type="number" id="pf-water" min="0" max="8" step="0.1" value="${v('water', 2)}"></label>
+    </div></fieldset>
+    <fieldset><legend>Kondisi kesehatan</legend>
+      <div class="checks">${CONDITIONS.map((cn, i) => `<label class="chk"><input type="checkbox" id="pf-c${i}" value="${esc(cn)}" ${(p.conditions || []).includes(cn) ? 'checked' : ''}>${esc(cn)}</label>`).join('')}</div>
+      <div class="form-grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
+        <label class="f">Alergi / pantangan<input type="text" id="pf-allergy" placeholder="mis. udang, susu sapi" value="${v('allergy')}"></label>
+        <label class="f">Preferensi makanan<input type="text" id="pf-pref" placeholder="mis. suka nasi, sering makan di kantin" value="${v('pref')}"></label>
+      </div></fieldset>
+    <div class="spread">${calc || '<span></span>'}<button class="btn primary" type="submit">${isNew ? 'Simpan & mulai' : 'Simpan profil'}</button></div>
+  </form>`;
+}
+async function saveProfile() {
+  const g = id => $('#' + id)?.value.trim();
+  const prof = { ...(S.data.diet.profile || {}),
+    name: g('pf-name'), sex: g('pf-sex'), birth: g('pf-birth'), height: num(g('pf-height')),
+    startWeight: num(g('pf-sw')), startWaist: num(g('pf-swa')), targetWeight: num(g('pf-tw')),
+    activity: num(g('pf-act')), goal: g('pf-goal'), months: num(g('pf-months')), startDate: g('pf-start'),
+    work: g('pf-work'), sleep: num(g('pf-sleep')), stress: g('pf-stress'), water: num(g('pf-water')),
+    conditions: CONDITIONS.filter((_, i) => $('#pf-c' + i)?.checked), allergy: g('pf-allergy'), pref: g('pf-pref') };
+  if (!prof.name || !prof.birth || !prof.height || !prof.startWeight || !prof.startDate) { toast('Lengkapi nama, tanggal lahir, tinggi, berat awal, dan tanggal mulai.'); return; }
+  const age = ageFrom(prof.birth); if (age < 15 || age > 90) { toast('Periksa tanggal lahir. Perhitungan ini untuk usia 15–90 tahun.'); return; }
+  if (prof.targetWeight && prof.targetWeight >= prof.startWeight && prof.goal === 'turun') { toast('Target berat harus lebih kecil dari berat awal.'); return; }
+  const first = !S.data.diet.profile;
+  try { await put('diet', 'profile', prof); } catch { return; }
+  document.querySelectorAll('#main [data-dirty]').forEach(el => delete el.dataset.dirty);
+  toast(first ? 'Profil tersimpan. Program dimulai.' : 'Profil tersimpan.');
+  if (first) go('ringkasan');
+}
+
+const RICE_OPTS = [['', 'Bebas, AI yang memilih'], ['nasi', 'Dengan nasi'], ['tanpa', 'Tanpa nasi']];
+const prefsKey = m => [m?.breakfast || '', m?.breakfastNote || '', m?.lunch || '', m?.lunchNote || '', m?.dinner || '', m?.dinnerNote || ''].join('|');
+function prefsText(mp = {}) {
+  const part = (label, rice, note) => `${label} ${rice === 'nasi' ? 'DENGAN nasi' : rice === 'tanpa' ? 'TANPA nasi (jangan nasi, nasi uduk, nasi goreng, lontong, ketupat, atau bubur nasi)' : 'bebas'}${note ? `, menu pilihan pengguna: ${note}` : ''}`;
+  return `${part('Sarapan', mp?.breakfast, mp?.breakfastNote)}. ${part('Makan siang', mp?.lunch, mp?.lunchNote)}. ${part('Makan malam', mp?.dinner, mp?.dinnerNote)}.`;
+}
+function prefsCard(d) {
+  const mp = d.profile.mealPrefs || {}, dis = d.demo ? 'disabled' : '';
+  const sel = (id, cur) => `<select id="${id}" data-pref ${dis}>${RICE_OPTS.map(([v, l]) => `<option value="${v}" ${(cur || '') === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+  const block = (title, key, idp, ph) => `<fieldset><legend>${title}</legend><div class="form-grid" style="grid-template-columns:repeat(auto-fill,minmax(190px,1fr))">
+    <label class="f">Pakai nasi?${sel(idp, mp[key])}</label>
+    <label class="f">Menu ${title.toLowerCase()} pilihan (opsional)<input type="text" id="${idp}-note" data-pref ${dis} value="${esc(mp[key + 'Note'] || '')}" placeholder="${ph}"></label></div></fieldset>`;
+  return `<section class="card"><div class="card-head"><div><h2>Pilihan menu</h2><p>Dipakai AI saat menyusun meal plan dan saat menilai makanan Anda. Tersimpan otomatis begitu diubah.</p></div></div>
+    <div class="grid g3">${block('Sarapan', 'breakfast', 'mp-bf', 'mis. telur rebus')}${block('Makan siang', 'lunch', 'mp-ln', 'mis. gado-gado, ayam bakar')}${block('Makan malam', 'dinner', 'mp-dn', 'mis. sup ayam, ikan bakar')}</div></section>`;
+}
+async function savePrefs() {
+  if (needProfile()) return;
+  const g = id => ($('#' + id)?.value ?? '').trim();
+  const mealPrefs = { breakfast: g('mp-bf'), breakfastNote: g('mp-bf-note'), lunch: g('mp-ln'), lunchNote: g('mp-ln-note'), dinner: g('mp-dn'), dinnerNote: g('mp-dn-note') };
+  if (prefsKey(mealPrefs) === prefsKey(S.data.diet.profile.mealPrefs)) return;
+  try { await put('diet', 'profile', { ...S.data.diet.profile, mealPrefs }); } catch { return; }
+  main.querySelectorAll('[data-pref]').forEach(el => delete el.dataset.dirty);
+  toast('Pilihan menu tersimpan.');
+}
+
+function vMenu() {
+  const d = D(), c = compute(d), p = d.profile, plan = d.plan;
+  const ch = c.chosen.key;
+  const optCard = o => `<button class="opt" data-action="deficit" data-k="${o.key}" aria-pressed="${ch === o.key}">
+    ${c.rec === o.key ? '<span class="pill a tag">Disarankan</span>' : o.key === 'ekstrem' ? '<span class="pill l2 tag">Hati-hati</span>' : ''}
+    <span class="eyebrow">Defisit ${esc(o.label)}</span><span class="big">${fmt(o.target)}<small class="muted" style="font-size:.8rem"> kkal/hari</small></span>
+    <dl><dt>Defisit</dt><dd>−${fmt(o.def)} kkal</dd><dt>Turun / minggu</dt><dd>${fmt(o.perWeek, 2)} kg</dd><dt>% berat / minggu</dt><dd>${fmt(o.pctBW, 2)}%</dd><dt>Total ${p.months} bln</dt><dd>${fmt(o.perWeek * c.totalDays / 7, 1)} kg</dd></dl>
+    ${o.clamped ? `<span class="tiny" style="color:var(--warn)">Dibatasi minimal ${fmt(c.floor)} kkal agar kebutuhan gizi terpenuhi.</span>` : ''}
+    ${o.key === 'ekstrem' ? '<span class="tiny muted">Hanya untuk jangka pendek. Risiko kehilangan otot, lelah, dan mudah lapar.</span>' : ''}</button>`;
+  const tot = plan?.meals ? { k: sumOf(plan.meals, 'kcal'), p: sumOf(plan.meals, 'protein'), c: sumOf(plan.meals, 'karbo'), f: sumOf(plan.meals, 'lemak') } : null;
+  const stale = plan && plan.targetKcal && Math.abs(plan.targetKcal - c.target) > 60;
+  const prefsStale = plan && !d.demo && prefsKey(plan.prefs) !== prefsKey(p.mealPrefs);
+  return `${demoBanner(d)}
+  <div class="page-head"><div class="stack" style="gap:6px"><span class="eyebrow">Meal plan</span><h1>Atur meal plan Anda</h1>
+    <p>Tentukan dulu pilihan sarapan, makan siang, dan makan malam, lalu tingkat defisit kalori. Setelah itu AI menyusun menu harian.</p></div></div>
+  ${prefsCard(d)}
+  <div class="stack" style="gap:4px"><h2>Tingkat defisit kalori</h2><p class="small muted">TDEE Anda <b class="num">${fmt(c.tdee)}</b> kkal. Defisit dihitung dari angka ini. Penurunan aman umumnya 0,5–1% berat badan per minggu.</p></div>
+  <div class="opts">${c.opts.map(optCard).join('')}${p.goal !== 'turun' ? `<button class="opt" data-action="deficit" data-k="pemeliharaan" aria-pressed="${ch === 'pemeliharaan'}">${c.rec === 'pemeliharaan' ? '<span class="pill a tag">Disarankan</span>' : ''}<span class="eyebrow">Tanpa defisit</span><span class="big">${fmt(c.maint.target)}<small class="muted" style="font-size:.8rem"> kkal/hari</small></span><span class="small muted">Kalori pemeliharaan untuk menjaga berat sekarang dan fokus ke kualitas makanan.</span></button>` : ''}</div>
+  ${c.tgt && c.neededPerWeek ? `<p class="small ${c.neededPerWeek / c.startW * 100 > 1 ? '' : 'muted'}" ${c.neededPerWeek / c.startW * 100 > 1 ? 'style="color:var(--bad)"' : ''}>Untuk mencapai ${fmt(c.tgt, 1)} kg dalam ${p.months} bulan, dibutuhkan turun ${fmt(c.neededPerWeek, 2)} kg/minggu${c.neededPerWeek / c.startW * 100 > 1 ? ' — lebih dari 1% berat badan per minggu. Pertimbangkan memperpanjang program.' : '.'}</p>` : ''}
+
+  <section class="card">
+    <div class="card-head"><div><h2>Target gizi harian</h2><p>Protein dihitung ${p.goal === 'turun' ? '1,6' : '1,3'} g/kg${c.bmi >= 25 ? ' dari berat setara BMI 25' : ''} untuk menjaga otot. Lemak 28% energi, sisanya karbohidrat.</p></div></div>
+    <div class="grid g4">
+      <div class="tile"><span class="lbl">Energi</span><span class="val">${fmt(c.target)}<small>kkal</small></span></div>
+      <div class="tile"><span class="lbl">Protein</span><span class="val">${c.macro.protein}<small>g</small></span><span class="sub">${fmt(c.macro.protein * 4 / c.target * 100, 0)}% energi</span></div>
+      <div class="tile"><span class="lbl">Karbohidrat</span><span class="val">${c.macro.carbs}<small>g</small></span><span class="sub">${fmt(c.macro.carbs * 4 / c.target * 100, 0)}% energi</span></div>
+      <div class="tile"><span class="lbl">Lemak · Serat</span><span class="val">${c.macro.fat}<small>g</small> · ${c.macro.fiber}<small>g</small></span><span class="sub">28% energi · 14 g per 1.000 kkal</span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><div><h2>Menu harian dari AI</h2><p>Disusun dari target ${fmt(c.target)} kkal, kondisi kesehatan, pantangan, dan pola kerja Anda.</p></div>
+      ${d.demo ? '' : `<div class="row">${plan?.meals?.some(m => !m.svg) && S.ai && !S.busy.plan ? busyBtn('img', 'Buat gambar menu', 'img-all', '') : ''}${S.busy.img ? '' : busyBtn('plan', plan ? 'Buat ulang menu' : 'Buat meal plan', 'plan')}</div>`}</div>
+    ${errLine('plan')}
+    ${prefsStale ? `<p class="small" style="color:var(--warn);margin-bottom:10px">Pilihan sarapan/makan malam Anda berubah sejak menu ini dibuat. Tekan “Buat ulang menu” agar menunya mengikuti pilihan baru.</p>` : ''}
+    ${stale ? `<p class="small" style="color:var(--warn);margin-bottom:10px">Menu ini dibuat untuk ${fmt(plan.targetKcal)} kkal. Target Anda sekarang ${fmt(c.target)} kkal — buat ulang agar sesuai.</p>` : ''}
+    ${plan ? `${plan.catatan ? `<p class="small" style="margin-bottom:12px">${esc(plan.catatan)}</p>` : ''}
+      ${errLine('img')}
+      <div class="mp-grid">${plan.meals.map((m, i) => `<article class="mp-card">${m.svg ? `<img class="mp-img" src="${svgSrc(m.svg)}" alt="Ilustrasi ${esc(m.menu)}">` : `<div class="mp-img ph">${S.imgBusy?.has(i) ? '<span class="thinking">AI sedang menggambar…</span>' : `<span class="tiny muted">${d.demo ? 'Gambar dibuat AI setelah Anda membuat meal plan sendiri' : 'Belum ada gambar'}</span>`}</div>`}
+        <div class="mp-body"><div class="spread"><span class="eyebrow">${esc(m.waktu)}${m.jam ? ' · ' + esc(m.jam) : ''}</span><span class="kc">${fmt(m.kcal)} kkal</span></div>
+          <h3>${esc(m.menu)}</h3>${m.porsi ? `<p class="small muted">${esc(m.porsi)}</p>` : ''}
+          <div class="mx">P ${fmt(m.protein)} g · K ${fmt(m.karbo)} g · L ${fmt(m.lemak)} g</div>
+          ${m.alternatif ? `<p class="small"><b>Alternatif:</b> ${esc(m.alternatif)}</p>` : ''}
+          ${!d.demo && S.ai && !S.busy.img ? `<div class="foot"><button class="btn small ghost" data-action="img-one" data-i="${i}">${m.svg ? 'Gambar ulang' : 'Buat gambar'}</button></div>` : ''}</div></article>`).join('')}</div>
+      <div class="mp-total"><b>Total ${fmt(tot.k)} kkal</b><span>Protein ${fmt(tot.p)} g · Karbo ${fmt(tot.c)} g · Lemak ${fmt(tot.f)} g</span></div>
+      <div class="grid g2" style="margin-top:16px">
+        <div><h3 style="margin-bottom:6px">Tips</h3><ul class="small" style="margin:0;padding-left:18px">${(plan.tips || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
+        <div><h3 style="margin-bottom:6px">Hindari</h3><ul class="small" style="margin:0;padding-left:18px">${(plan.hindari || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
+      </div>` : `<div class="empty">Belum ada menu. Tekan “Buat meal plan” untuk menyusun menu sesuai target.</div>`}
+    ${aiNote()}
+  </section>`;
+}
+
+function dayNav() {
+  const isToday = S.date === todayStr();
+  return `<div class="daynav"><button class="btn small" data-action="day" data-n="-1" aria-label="Hari sebelumnya">‹</button><span class="d">${esc(fmtDay(S.date))}</span><button class="btn small" data-action="day" data-n="1" aria-label="Hari berikutnya" ${isToday ? 'disabled' : ''}>›</button>${isToday ? '' : '<button class="btn small ghost" data-action="day" data-n="0">Hari ini</button>'}</div>`;
+}
+function defaultType() { const h = new Date().getHours(); return h < 10 ? 'Sarapan' : h < 15 ? 'Makan siang' : h < 18 ? 'Camilan' : 'Makan malam'; }
+function vMakan() {
+  const d = D(), c = compute(d), date = S.date;
+  const meals = dayMeals(d, date), wo = dayWorkouts(d, date);
+  const tot = { k: sumOf(meals, 'kcal'), p: sumOf(meals, 'protein'), c: sumOf(meals, 'carbs'), f: sumOf(meals, 'fat') };
+  const burn = sumOf(wo, 'kcal');
+  const typeSel = (id, cur) => `<select id="${id}">${MEAL_TYPES.map(t => `<option ${t === cur ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
+  const dr = S.draft, mr = S.manualAI;
+  const canPhoto = S.ai && S.aiImages;
+  let upload;
+  if (!dr) upload = `<label class="drop" id="drop" for="foto-input"><input type="file" id="foto-input" accept="${esc(S.aiImages?.mediaTypes?.join(',') || 'image/jpeg,image/png,image/webp')}" capture="environment"><b>Foto atau pilih gambar makanan</b><span class="small muted">${canPhoto ? 'AI akan memperkirakan kalori dan gizinya.' : 'Analisis foto aktif saat halaman dibuka di Claude. Anda tetap bisa menyimpan foto dan mengisi kalorinya sendiri.'}</span></label>`;
+  else {
+    const r = dr.result;
+    upload = `<div class="draft"><img src="${dr.thumb}" alt="Foto makanan">
+      <div class="stack">
+        <div class="form-grid"><label class="f">Waktu makan${typeSel('draft-type', dr.type)}</label><label class="f">Keterangan<span class="hint">Opsional: porsi, cara masak</span><input type="text" id="draft-note" value="${esc(dr.note || '')}" placeholder="mis. nasinya setengah porsi"></label></div>
+        ${r ? `<div class="ai-box"><div class="spread"><b>${esc(r.nama)}</b><span class="pill ${r.keyakinan === 'tinggi' ? 'l0' : r.keyakinan === 'rendah' ? 'l2' : 'l1'}">keyakinan ${esc(r.keyakinan || 'sedang')}</span></div>
+          <ul class="items">${(r.items || []).map(i => `<li>${esc(i.nama)} — ${esc(i.porsi)} <span class="mono">· ${fmt(i.kcal)} kkal</span></li>`).join('')}</ul>
+          ${r.catatan ? `<p class="small">${esc(r.catatan)}</p>` : ''}</div>` : ''}
+        <div class="form-grid" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr))">
+          <label class="f" style="grid-column:1/-1">Nama makanan<input type="text" id="draft-name" value="${esc(r?.nama || '')}"></label>
+          <label class="f">Kalori (kkal)<input type="number" id="draft-kcal" min="0" value="${r ? Math.round(r.kcal) : ''}"></label>
+          <label class="f">Protein (g)<input type="number" id="draft-p" min="0" value="${r ? Math.round(r.protein) : ''}"></label>
+          <label class="f">Karbo (g)<input type="number" id="draft-c" min="0" value="${r ? Math.round(r.karbo) : ''}"></label>
+          <label class="f">Lemak (g)<input type="number" id="draft-f" min="0" value="${r ? Math.round(r.lemak) : ''}"></label>
+        </div>
+        ${errLine('photo')}
+        <div class="row">${canPhoto ? busyBtn('photo', r ? 'Perkirakan ulang' : 'Perkirakan kalori dengan AI', 'photo', r ? '' : 'primary') : ''}<button class="btn ${r || !canPhoto ? 'primary' : ''}" data-action="save-draft">Simpan ke catatan</button><button class="btn ghost" data-action="cancel-draft">Batal</button></div>
+      </div></div>`;
+  }
+  const doc = d.reviews?.[date]; const msgs = doc?.messages || [];
+  const msgHtml = m => {
+    const at = new Date(m.at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    if (m.role === 'user') return `<div class="msg user"><span class="av">${esc((d.profile.name || 'A')[0].toUpperCase())}</span><div class="body"><span class="meta">Anda · ${at}</span><span class="txt">${esc(m.text)}</span></div></div>`;
+    if (m.kind === 'review') { const r = m.data || {}; const l = r.status === 'sesuai' ? 0 : r.status === 'melebihi' ? 2 : 1;
+      return `<div class="msg ai"><span class="av">AI</span><div class="body"><div class="spread"><span class="meta">Penilaian AI · ${at}</span><span class="row" style="gap:6px"><span class="pill l${l}">${esc(String(r.status || '').replace('_', ' '))}</span><span class="pill n mono">${fmt(r.skor)}/100</span></span></div>
+        <span>${esc(r.ringkasan)}</span>
+        ${r.baik?.length ? `<div class="small"><b style="color:var(--good)">Sudah tepat</b><ul>${r.baik.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
+        ${r.perbaiki?.length ? `<div class="small"><b style="color:var(--bad)">Perlu diperbaiki</b><ul>${r.perbaiki.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
+        ${r.berikutnya ? `<span class="small"><b>Selanjutnya:</b> ${esc(r.berikutnya)}</span>` : ''}</div></div>`; }
+    return `<div class="msg ai"><span class="av">AI</span><div class="body"><span class="meta">AI · ${at}</span><span class="txt">${esc(m.text)}</span></div></div>`;
+  };
+  const left = c.target + burn - tot.k;
+  const pct = (v, t) => t ? fmt(v / t * 100, 0) + '%' : '–';
+  return `${demoBanner(d)}
+  <div class="page-head"><div class="stack" style="gap:6px"><span class="eyebrow">Catatan makan</span><h1>Apa yang Anda makan?</h1></div>${dayNav()}</div>
+  <div class="grid" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)" id="makan-grid">
+    <div class="stack" style="gap:20px;min-width:0">
+      <section class="card"><div class="card-head"><div><h2>Tambah dari foto</h2></div></div>${upload}</section>
+      <section class="card"><div class="card-head"><div><h2>Tambah manual</h2><p>Tulis makanannya, lalu isi kalori sendiri atau minta AI menghitung.</p></div></div>
+        <form class="stack" id="manual-form">
+          <div class="form-grid"><label class="f">Waktu makan${typeSel('man-type', mr?.type || defaultType())}</label><label class="f" style="grid-column:span 2">Makanan<input type="text" id="man-name" placeholder="mis. nasi goreng telur + es teh manis" value="${esc(mr?.desc || '')}"></label></div>
+          ${mr ? `<div class="ai-box"><b>${esc(mr.nama)}</b><ul class="items">${(mr.items || []).map(i => `<li>${esc(i.nama)} — ${esc(i.porsi)} <span class="mono">· ${fmt(i.kcal)} kkal</span></li>`).join('')}</ul>${mr.catatan ? `<p class="small">${esc(mr.catatan)}</p>` : ''}</div>` : ''}
+          <div class="form-grid" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr))">
+            <label class="f">Kalori (kkal)<input type="number" id="man-kcal" min="0" value="${mr ? Math.round(mr.kcal) : ''}"></label>
+            <label class="f">Protein (g)<input type="number" id="man-p" min="0" value="${mr ? Math.round(mr.protein) : ''}"></label>
+            <label class="f">Karbo (g)<input type="number" id="man-c" min="0" value="${mr ? Math.round(mr.karbo) : ''}"></label>
+            <label class="f">Lemak (g)<input type="number" id="man-f" min="0" value="${mr ? Math.round(mr.lemak) : ''}"></label>
+          </div>${errLine('text')}
+          <div class="row">${S.ai ? (S.busy.text ? '<span class="thinking">AI sedang menghitung…</span>' : '<button type="button" class="btn" data-action="text-ai">Hitung dengan AI</button>') : ''}<button class="btn primary" type="submit">Simpan</button></div>
+        </form></section>
+      <section class="card"><div class="card-head"><div><h2>Makanan ${S.date === todayStr() ? 'hari ini' : 'hari itu'}</h2></div><span class="pill n mono">${meals.length} catatan</span></div>
+        ${meals.length ? `<div>${meals.map(m => `<div class="meal">${m.img ? `<img class="ph" src="${m.img}" alt="">` : `<span class="ph">${esc(m.type)}</span>`}
+          <div style="min-width:0"><span class="tiny muted">${esc(m.type)}</span><div class="nm">${esc(m.name)}</div><div class="mx">P ${fmt(m.protein)} g · K ${fmt(m.carbs)} g · L ${fmt(m.fat)} g</div></div>
+          <div class="stack" style="gap:4px;align-items:flex-end"><span class="kc">${fmt(m.kcal)} kkal</span>${d.demo ? '' : `<button class="btn small ghost danger" data-action="del-meal" data-id="${esc(m.id)}">Hapus</button>`}</div></div>`).join('')}</div>`
+          : '<div class="empty">Belum ada makanan tercatat untuk hari ini.</div>'}
+      </section>
+    </div>
+    <div class="stack" style="gap:20px;min-width:0">
+      <div class="nlabel"><div class="t">Informasi Nilai Gizi</div><div class="s">Total ${S.date === todayStr() ? 'hari ini' : esc(fmtDate(S.date))} · ${meals.length} sajian</div>
+        <div class="r big"><span>Energi total</span><span>${fmt(tot.k)} kkal</span></div>
+        <div class="r"><span>Target energi</span><span>${fmt(c.target)} kkal · ${pct(tot.k, c.target)}</span></div>
+        <div class="r"><span><b>Protein</b></span><span>${fmt(tot.p)} / ${c.macro.protein} g · ${pct(tot.p, c.macro.protein)}</span></div>
+        <div class="r"><span><b>Karbohidrat</b></span><span>${fmt(tot.c)} / ${c.macro.carbs} g · ${pct(tot.c, c.macro.carbs)}</span></div>
+        <div class="r"><span><b>Lemak total</b></span><span>${fmt(tot.f)} / ${c.macro.fat} g · ${pct(tot.f, c.macro.fat)}</span></div>
+        <div class="r"><span>Dibakar olahraga</span><span>${fmt(burn)} kkal</span></div>
+        <div class="r big" style="border-bottom:none"><span>Sisa jatah</span><span style="color:${left < 0 ? 'var(--bad)' : 'var(--good)'}">${left < 0 ? '−' : ''}${fmt(Math.abs(left))} kkal</span></div>
+        <div class="foot">% dihitung terhadap target harian pribadi Anda, bukan AKG umum.</div></div>
+      <section class="card"><div class="card-head"><div><h2>Komentar AI</h2><p>Penilaian makanan hari ini terhadap meal plan.</p></div></div>
+        <div class="thread">${msgs.length ? msgs.map(msgHtml).join('') : `<div class="empty small">${meals.length ? 'Minta AI menilai apakah makanan hari ini sudah sesuai meal plan.' : 'Catat makanan dulu, lalu minta penilaian AI.'}</div>`}
+          ${S.busy.chat || S.busy.review ? '<div class="msg ai"><span class="av">AI</span><div class="body"><span class="thinking">Sedang menilai…</span></div></div>' : ''}</div>
+        ${errLine('review')}${errLine('chat')}
+        ${d.demo ? '' : `<div class="stack" style="margin-top:14px">
+          <button class="btn primary" data-action="review" ${!S.ai || !meals.length || S.busy.review ? 'disabled' : ''}>Nilai makanan ${S.date === todayStr() ? 'hari ini' : 'hari itu'}</button>
+          <form id="chat-form" class="stack" style="gap:8px"><textarea id="chat-input" rows="2" placeholder="Tanya AI, mis. “Malam ini sebaiknya makan apa?”"></textarea><button class="btn" type="submit" ${!S.ai || S.busy.chat ? 'disabled' : ''}>Kirim</button></form></div>`}
+        ${aiNote()}
+      </section>
+    </div>
+  </div>`;
+}
+
+function vOlahraga() {
+  const d = D(), c = compute(d), date = S.date;
+  const list = exerciseList(d, c), picks = todaysPicks(list, date), w = weekStats(d, c);
+  const done = dayWorkouts(d, date);
+  const exCard = (e, big) => `<div class="ex ${big ? 'pick' : ''} ${e.ok ? '' : 'no'}"><div class="top"><div><span class="tiny muted">${esc(e.kind)} · impact ${esc(e.impact)}</span><h3>${esc(e.name)}</h3></div><span class="kc">±${fmt(e.kcal)} kkal</span></div>
+    <span class="small muted">${e.min} menit · MET ${String(e.met).replace('.', ',')}</span><p class="small">${esc(e.why)}</p>${e.note ? `<p class="small" style="color:${e.ok ? 'var(--warn)' : 'var(--bad)'}">${esc(e.note)}</p>` : ''}
+    ${e.ok && !d.demo ? `<div class="row"><button class="btn small ${big ? 'primary' : ''}" data-action="add-ex" data-id="${e.id}">Saya lakukan ${S.date === todayStr() ? 'hari ini' : 'hari itu'}</button></div>` : ''}</div>`;
+  return `${demoBanner(d)}
+  <div class="page-head"><div class="stack" style="gap:6px"><span class="eyebrow">Olahraga</span><h1>Gerak ${S.date === todayStr() ? 'hari ini' : 'hari itu'}</h1><p>Saran disesuaikan dengan BMI ${fmt(c.bmi, 1)}, kondisi kesehatan, dan tujuan Anda. Kalori dihitung dari MET × berat badan × durasi.</p></div>${dayNav()}</div>
+  <section class="card"><div class="spread"><div><span class="eyebrow">7 hari terakhir</span><h2 class="num" style="margin-top:4px">${w.minutes} / 150 menit</h2><p class="small muted">Anjuran WHO: 150–300 menit aktivitas sedang per minggu + latihan otot 2×.</p></div>
+    <div class="row" style="gap:24px"><div class="tile"><span class="lbl">Sesi</span><span class="val">${w.sessions}</span></div><div class="tile"><span class="lbl">Terbakar</span><span class="val">${fmt(w.burn)}<small>kkal</small></span></div></div></div>
+    <div class="bar teal" style="margin-top:12px"><i style="width:${clamp(w.minutes / 150 * 100, 0, 100)}%"></i></div></section>
+  <section><h2 style="margin-bottom:12px">Saran untuk ${S.date === todayStr() ? 'hari ini' : esc(fmtDay(S.date))}</h2><div class="grid g2">${picks.map(e => exCard(e, true)).join('')}</div></section>
+  ${stravaCard(d, c)}
+  <div class="grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)" id="ex-grid">
+    <section class="card"><div class="card-head"><div><h2>Catat manual</h2><p>Olahraga lain yang Anda lakukan.</p></div></div>
+      <form class="stack" id="ex-form"><div class="form-grid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr))">
+        <label class="f" style="grid-column:1/-1">Jenis olahraga<select id="ex-type">${EXERCISES.map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join('')}<option value="lain">Lainnya…</option></select></label>
+        <label class="f" style="grid-column:1/-1">Nama (jika lainnya)<input type="text" id="ex-name" placeholder="mis. futsal"></label>
+        <label class="f">Durasi (menit)<input type="number" id="ex-min" min="1" max="600" value="30"></label>
+        <label class="f">Intensitas<select id="ex-int"><option value="0.8">Ringan</option><option value="1" selected>Sedang</option><option value="1.2">Berat</option></select></label>
+        <label class="f">Kalori (kkal)<span class="hint">Kosongkan untuk dihitung otomatis</span><input type="number" id="ex-kcal" min="0"></label>
+      </div><div class="row"><button class="btn primary" type="submit" ${d.demo ? 'disabled' : ''}>Simpan olahraga</button></div></form></section>
+    <section class="card"><div class="card-head"><div><h2>Tercatat</h2></div><span class="pill n mono">${fmt(sumOf(done, 'kcal'))} kkal</span></div>
+      ${done.length ? done.map(x => `<div class="meal" style="grid-template-columns:minmax(0,1fr) auto"><div><div class="nm">${esc(x.name)}</div><div class="mx">${x.minutes} menit${x.distanceKm ? ` · ${fmt(x.distanceKm, 2)} km` : ''} · ${x.source === 'saran' ? 'dari saran' : x.source === 'strava' ? 'Strava' : 'manual'}</div>${x.detail ? `<div class="tiny muted">${esc(x.detail)}</div>` : ''}</div><div class="stack" style="gap:4px;align-items:flex-end"><span class="kc">${fmt(x.kcal)} kkal</span>${d.demo ? '' : `<button class="btn small ghost danger" data-action="del-ex" data-id="${esc(x.id)}">Hapus</button>`}</div></div>`).join('') : '<div class="empty">Belum ada olahraga tercatat.</div>'}</section>
+  </div>
+  <section><h2 style="margin-bottom:12px">Semua pilihan</h2><div class="grid g3">${list.filter(e => !picks.includes(e)).map(e => exCard(e, false)).join('')}</div></section>`;
+}
+
+/* ---------- Strava screenshot import ---------- */
+const STRAVA_MET = { lari: 9.0, run: 9.0, sepeda: 7.0, ride: 7.0, jalan: 4.3, walk: 4.3, renang: 6.0, swim: 6.0, hiking: 6.0, beban: 5.0, weight: 5.0, yoga: 2.5 };
+function stravaMet(jenis) { const j = String(jenis || '').toLowerCase(); const k = Object.keys(STRAVA_MET).find(k => j.includes(k)); return k ? STRAVA_MET[k] : 5; }
+function stravaRow(a, c) {
+  const minutes = num(a.durasiMenit), km = num(a.jarakKm), kc = num(a.kalori);
+  const met = num(a.metPerkiraan) || stravaMet(a.jenis);
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(a.tanggal || '') && a.tanggal <= todayStr() ? a.tanggal : S.date;
+  const name = [a.jenis, a.judul && a.judul !== a.jenis ? `“${a.judul}”` : ''].filter(Boolean).join(' ');
+  const extra = [a.paceAtauKecepatan && 'Pace/kecepatan ' + a.paceAtauKecepatan, a.detakJantungRata && `Detak jantung rata-rata ${a.detakJantungRata} bpm`, a.elevasiM && `Elevasi ${a.elevasiM} m`].filter(Boolean).join(' · ');
+  return { name: name || 'Aktivitas Strava', date, minutes, km, met, kcal: kc ?? (minutes ? Math.round(met * c.weight * minutes / 60) : null), kcalSrc: kc != null ? 'Dari Strava' : 'Perkiraan dari MET', extra };
+}
+async function aiStrava() {
+  const d = D(), c = compute(d), st = S.strava, t = todayStr();
+  const prompt = `Ini screenshot aktivitas olahraga dari aplikasi Strava. Hari ini ${t} (${fmtDay(t)}). Baca semua aktivitas yang terlihat di screenshot.
+Aturan: pakai moving time sebagai durasi (dalam menit, desimal boleh). Ubah tanggal relatif ("Hari ini", "Kemarin", "Today", "Yesterday", nama hari) menjadi YYYY-MM-DD. Isi null untuk angka yang tidak terlihat; jangan mengarang. metPerkiraan diisi nilai MET dari Compendium of Physical Activities berdasarkan jenis dan pace/kecepatan. Berat pengguna ${fmt(c.weight, 1)} kg.
+Balas HANYA JSON: {"bukanStrava":false,"aktivitas":[{"jenis":"Lari|Bersepeda|Jalan|Renang|Hiking|Latihan beban|lainnya","judul":"judul aktivitas bila ada","tanggal":"YYYY-MM-DD","durasiMenit":0,"jarakKm":null,"kalori":null,"paceAtauKecepatan":"","detakJantungRata":null,"elevasiM":null,"metPerkiraan":0}],"catatan":"1 kalimat komentar singkat tentang aktivitas ini terhadap program diet pengguna"}
+Jika gambar bukan screenshot aktivitas olahraga, isi "bukanStrava": true dan "aktivitas": [].`;
+  const res = await S.ai.json(prompt, { images: [st.file], cache: false });
+  if (res?.bukanStrava) { S.err.strava = 'Gambar ini tidak terlihat seperti aktivitas olahraga. Gunakan screenshot halaman ringkasan aktivitas Strava.'; return; }
+  const acts = Array.isArray(res?.aktivitas) ? res.aktivitas : null;
+  if (!acts || !acts.length) throw { code: 'invalid_json' };
+  st.note = res.catatan || '';
+  st.rows = acts.slice(0, 5).map(a => stravaRow(a, c));
+}
+async function startStrava(file) {
+  if (needProfile()) return;
+  if (!/^image\//.test(file.type)) { toast('Pilih file gambar.'); return; }
+  try { const thumb = await makeThumb(file, 560); S.strava = { file, thumb, rows: [], note: '' }; S.err.strava = null; render(); }
+  catch { toast('Gambar tidak bisa dibuka. Coba format JPG atau PNG.'); return; }
+  if (S.ai && S.aiImages) runAI('strava', aiStrava);
+}
+function stravaCard(d, c) {
+  const st = S.strava, canAI = S.ai && S.aiImages;
+  let body;
+  if (!st) body = `<label class="drop" id="drop-strava" for="strava-input"><input type="file" id="strava-input" accept="image/jpeg,image/png,image/webp"><b>Upload screenshot aktivitas Strava</b><span class="small muted">${canAI ? 'AI membaca jenis aktivitas, tanggal, durasi, jarak, dan kalori dari screenshot.' : 'Pembacaan otomatis aktif saat halaman dibuka di Claude. Anda tetap bisa mengisi angkanya sendiri.'}</span></label>`;
+  else {
+    const rows = st.rows;
+    body = `<div class="draft"><img src="${st.thumb}" alt="Screenshot Strava" style="aspect-ratio:auto;object-fit:contain;max-height:380px">
+      <div class="stack" style="min-width:0">
+        ${st.note ? `<p class="small">${esc(st.note)}</p>` : ''}
+        ${rows.map((r, i) => `<div class="ai-box">${rows.length > 1 ? `<span class="eyebrow">Aktivitas ${i + 1}</span>` : ''}<div class="form-grid" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr))">
+          <label class="f" style="grid-column:1/-1">Aktivitas<input type="text" id="sv-name-${i}" value="${esc(r.name)}" placeholder="mis. Lari pagi"></label>
+          <label class="f">Tanggal<input type="date" id="sv-date-${i}" max="${todayStr()}" value="${esc(r.date)}"></label>
+          <label class="f">Durasi (menit)<input type="number" id="sv-min-${i}" min="1" step="0.1" value="${r.minutes ?? ''}"></label>
+          <label class="f">Jarak (km)<input type="number" id="sv-km-${i}" min="0" step="0.01" value="${r.km ?? ''}"></label>
+          <label class="f">Kalori (kkal)<span class="hint">${esc(r.kcalSrc)}</span><input type="number" id="sv-kcal-${i}" min="0" value="${r.kcal ?? ''}"></label>
+        </div>${r.extra ? `<span class="tiny muted">${esc(r.extra)}</span>` : ''}</div>`).join('')}
+        ${errLine('strava')}
+        <div class="row">${!rows.length && canAI ? busyBtn('strava', 'Baca screenshot dengan AI', 'strava-ai') : ''}${!rows.length && !S.busy.strava ? '<button class="btn" data-action="strava-manual">Isi manual</button>' : ''}${rows.length ? `<button class="btn primary" data-action="strava-save">Simpan ${rows.length > 1 ? rows.length + ' aktivitas' : 'aktivitas'}</button>` : ''}<button class="btn ghost" data-action="strava-cancel">Batal</button></div>
+      </div></div>`;
+  }
+  return `<section class="card"><div class="card-head"><div><h2>Impor dari Strava</h2><p>Upload screenshot ringkasan aktivitas dari aplikasi Strava. Angkanya bisa dikoreksi sebelum disimpan.</p></div><span class="pill n">Screenshot</span></div>${body}</section>`;
+}
+
+/* ---------- intake calendar ---------- */
+function calStatus(k, target, burn) {
+  const limit = target + burn;
+  if (k > limit * 1.1) return { cls: 's-o2', label: 'Melebihi lebih dari 10%' };
+  if (k > limit) return { cls: 's-o1', label: 'Sedikit di atas target' };
+  if (k < target * 0.7) return { cls: 's-lo', label: 'Di bawah 70% target atau belum lengkap dicatat' };
+  return { cls: 's-ok', label: 'Sesuai target' };
+}
+function calendarCard(d, c) {
+  const t = todayStr(), ym = S.calMonth || t.slice(0, 7);
+  const [y, m] = ym.split('-').map(Number);
+  const nDays = new Date(y, m, 0).getDate(), lead = (new Date(y, m - 1, 1).getDay() + 6) % 7;
+  const kc = {}, burn = {}, wd = new Set();
+  for (const x of d.meals) if (x.date.startsWith(ym)) kc[x.date] = (kc[x.date] || 0) + (Number(x.kcal) || 0);
+  for (const x of d.workouts) if (x.date.startsWith(ym)) burn[x.date] = (burn[x.date] || 0) + (Number(x.kcal) || 0);
+  for (const x of c.series) if (x.date.startsWith(ym)) wd.add(x.date);
+  let cells = '';
+  for (let i = 0; i < lead; i++) cells += '<span class="cal-blank" aria-hidden="true"></span>';
+  const tally = { ok: 0, over: 0, logged: 0, sum: 0 };
+  for (let dd = 1; dd <= nDays; dd++) {
+    const date = `${ym}-${String(dd).padStart(2, '0')}`, k = kc[date], b = burn[date] || 0, fut = date > t;
+    const st = k ? calStatus(k, c.target, b) : null;
+    if (k) { tally.logged++; tally.sum += k; if (st.cls === 's-ok') tally.ok++; if (st.cls === 's-o1' || st.cls === 's-o2') tally.over++; }
+    const title = `${fmtDay(date)}${k ? ` · ${fmt(k)} kkal dari target ${fmt(c.target + b)} kkal · ${st.label}` : ' · belum ada catatan makan'}${b ? ` · olahraga ${fmt(b)} kkal` : ''}${wd.has(date) ? ' · ada timbangan' : ''}`;
+    cells += `<button class="cal-d ${st ? st.cls : ''} ${date === t ? 'today' : ''}" data-action="cal-day" data-date="${date}" title="${esc(title)}" aria-label="${esc(title)}" ${fut ? 'disabled' : ''}>
+      <span class="cal-n">${dd}</span><span class="cal-m">${wd.has(date) ? '<i class="w"></i>' : ''}${b ? '<i class="x"></i>' : ''}</span>
+      ${k ? `<span class="cal-k">${fmt(k)}</span><span class="cal-p">${fmt(k / (c.target + b) * 100, 0)}%</span>` : ''}</button>`;
+  }
+  const label = new Date(y, m - 1, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+  return `<section class="card"><div class="card-head"><div><h2>Kalender kalori masuk</h2><p>Total kalori yang Anda catat setiap hari, dibandingkan target ${fmt(c.target)} kkal ditambah kalori olahraga hari itu. Ketuk tanggal untuk membuka catatan makannya.</p></div>
+    <div class="daynav"><button class="btn small" data-action="cal-move" data-n="-1" aria-label="Bulan sebelumnya">‹</button><span class="d" style="min-width:140px">${esc(label)}</span><button class="btn small" data-action="cal-move" data-n="1" aria-label="Bulan berikutnya" ${ym >= t.slice(0, 7) ? 'disabled' : ''}>›</button></div></div>
+    <div class="grid g4" style="margin-bottom:16px">
+      <div class="tile"><span class="lbl">Hari tercatat</span><span class="val">${tally.logged}</span></div>
+      <div class="tile"><span class="lbl">Rata-rata kalori masuk</span><span class="val">${tally.logged ? fmt(tally.sum / tally.logged) : '–'}<small>kkal</small></span></div>
+      <div class="tile"><span class="lbl">Hari sesuai target</span><span class="val" style="color:var(--good)">${tally.ok}</span></div>
+      <div class="tile"><span class="lbl">Hari melebihi target</span><span class="val" style="color:var(--bad)">${tally.over}</span></div>
+    </div>
+    <div class="cal">${['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map(h => `<span class="cal-h">${h}</span>`).join('')}${cells}</div>
+    <div class="cal-legend"><span><i class="sw s-ok"></i>Sesuai target</span><span><i class="sw s-o1"></i>Sedikit di atas (≤10%)</span><span><i class="sw s-o2"></i>Melebihi &gt;10%</span><span><i class="sw s-lo"></i>Di bawah 70% / belum lengkap</span><span><i class="mk w"></i>Timbang</span><span><i class="mk x"></i>Olahraga</span></div>
+  </section>`;
+}
+
+function vTracking() {
+  const d = D(), c = compute(d), p = d.profile;
+  const rows = c.series;
+  const em = S.editMeasure ? rows.find(r => r.date === S.editMeasure) : null;
+  const actualW = rows.map(s => ({ date: s.date, v: s.weight }));
+  const actualWa = rows.filter(s => s.waist).map(s => ({ date: s.date, v: s.waist }));
+  const projW = [], projWa = [];
+  for (let dd = 0; dd <= c.totalDays; dd += 7) { const dt = addDays(p.startDate, dd); projW.push({ date: dt, v: c.projW(dt) }); if (c.startWaist) projWa.push({ date: dt, v: c.projWaist(dt) }); }
+  const tableRows = rows.map((r, i) => {
+    const prev = i ? rows[i - 1] : null;
+    const prevWa = i ? [...rows.slice(0, i)].reverse().find(x => x.waist) : null;
+    const dw = prev ? r.weight - prev.weight : null, dwa = prevWa && r.waist ? r.waist - prevWa.waist : null;
+    const sw = r.weight - c.startW, swa = r.waist && c.startWaist ? r.waist - c.startWaist : null;
+    return { r, dw, dwa, sw, swa, prev, prevWa };
+  }).reverse();
+  return `${demoBanner(d)}
+  <div class="page-head"><div class="stack" style="gap:6px"><span class="eyebrow">Progress Tracker</span><h1>Berat badan, lingkar perut & kalori</h1><p>Timbang di jam yang sama, idealnya pagi setelah buang air dan sebelum makan. Satu catatan per hari; mengisi tanggal yang sama akan menimpa catatan lama.</p></div></div>
+  <section class="card"><form class="row" id="measure-form" style="align-items:flex-end;gap:14px">
+    <label class="f" style="flex:1 1 150px">Tanggal<input type="date" id="ms-date" max="${todayStr()}" min="${p.startDate}" value="${esc(em?.date || todayStr())}"></label>
+    <label class="f" style="flex:1 1 130px">Berat (kg)<input type="number" id="ms-w" step="0.1" min="30" max="300" value="${em ? em.weight : ''}" required></label>
+    <label class="f" style="flex:1 1 130px">Lingkar perut (cm)<input type="number" id="ms-wa" step="0.1" min="40" max="200" value="${em?.waist ?? ''}"></label>
+    <div class="row"><button class="btn primary" type="submit" ${d.demo ? 'disabled' : ''}>${em ? 'Perbarui' : 'Simpan ukuran'}</button>${em ? '<button type="button" class="btn ghost" data-action="cancel-edit">Batal</button>' : ''}</div>
+  </form>${d.demo ? '<p class="tiny muted" style="margin-top:8px">Isi profil dulu untuk mulai mencatat.</p>' : ''}</section>
+  ${calendarCard(d, c)}
+  <div class="grid g2">
+    <section class="card"><div class="card-head"><div><h2>Berat badan</h2><p>${deltaTxt(c.weight - c.startW, 1, 'kg')} (${pctTxt(c.weight - c.startW, c.startW)}) sejak mulai</p></div><div class="legend"><span style="color:var(--accent)"><i></i><b style="color:var(--ink-2);font-weight:500">Aktual</b></span><span style="color:var(--proj)"><i class="dash"></i><b style="color:var(--ink-2);font-weight:500">Proyeksi</b></span></div></div>${lineChart('tw', actualW, projW, { unit: 'kg', color: 'var(--accent)' })}</section>
+    <section class="card"><div class="card-head"><div><h2>Lingkar perut</h2><p>${c.waist && c.startWaist ? `${deltaTxt(c.waist - c.startWaist, 1, 'cm')} (${pctTxt(c.waist - c.startWaist, c.startWaist)}) sejak mulai` : 'Belum ada data lingkar perut.'}</p></div><div class="legend"><span style="color:var(--teal)"><i></i><b style="color:var(--ink-2);font-weight:500">Aktual</b></span><span style="color:var(--proj)"><i class="dash"></i><b style="color:var(--ink-2);font-weight:500">Proyeksi</b></span></div></div>${lineChart('twa', actualWa, projWa, { unit: 'cm', color: 'var(--teal)' })}</section>
+  </div>
+  <section class="card"><div class="card-head"><div><h2>Tabel harian</h2><p>Perubahan dibanding catatan sebelumnya dan dibanding hari pertama program.</p></div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Tanggal</th><th class="n">Berat</th><th class="n">vs sebelumnya</th><th class="n">vs awal</th><th class="n">Lingkar perut</th><th class="n">vs sebelumnya</th><th class="n">vs awal</th><th class="n">BMI</th><th></th></tr></thead><tbody>
+    ${tableRows.map(({ r, dw, dwa, sw, swa, prev, prevWa }) => `<tr><td>${esc(fmtDate(r.date))}${r.baseline ? ' <span class="pill n">awal</span>' : ''}</td>
+      <td class="n"><b>${fmt(r.weight, 1)}</b></td><td class="n ${dirCls(dw, p.goal)}">${deltaTxt(dw, 1)} <span class="tiny">${pctTxt(dw, prev?.weight)}</span></td><td class="n ${dirCls(sw, p.goal)}">${r.baseline ? '–' : pctTxt(sw, c.startW)}</td>
+      <td class="n"><b>${r.waist ? fmt(r.waist, 1) : '–'}</b></td><td class="n ${dirCls(dwa, p.goal)}">${deltaTxt(dwa, 1)} <span class="tiny">${pctTxt(dwa, prevWa?.waist)}</span></td><td class="n ${dirCls(swa, p.goal)}">${r.baseline ? '–' : pctTxt(swa, c.startWaist)}</td>
+      <td class="n">${fmt(r.weight / ((p.height / 100) ** 2), 1)}</td>
+      <td>${r.baseline || d.demo ? '' : `<span class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn small ghost" data-action="edit-ms" data-id="${esc(r.date)}">Ubah</button><button class="btn small ghost danger" data-action="del-ms" data-id="${esc(r.date)}">Hapus</button></span>`}</td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="tiny muted" style="margin-top:8px">Hijau = bergerak ke arah tujuan, merah = menjauh. Fluktuasi harian 0,5–1 kg wajar karena cairan; perhatikan tren mingguan.</p>
+  </section>`;
+}
+
+/* ---------- render & routing ---------- */
+const VIEWS = { ringkasan: vRingkasan, profil: vProfil, menu: vMenu, makan: vMakan, olahraga: vOlahraga, tracking: vTracking };
+let rq = 0;
+function scheduleRender() { if (rq) return; rq = requestAnimationFrame(() => { rq = 0; render(); }); }
+function render() {
+  const main = $('#main');
+  if (S.mode === 'loading' || (S.mode === 'db' && S.loading !== false)) return;
+  const keep = {};
+  main.querySelectorAll('[data-dirty]').forEach(el => { if (el.id) keep[el.id] = el.type === 'checkbox' ? el.checked : el.value; });
+  const act = document.activeElement, actId = act && main.contains(act) ? act.id : null;
+  let sel = null; try { if (actId && act.selectionStart != null) sel = [act.selectionStart, act.selectionEnd]; } catch {}
+  main.innerHTML = VIEWS[S.view]();
+  for (const [id, v] of Object.entries(keep)) { const el = document.getElementById(id); if (!el) continue; if (el.type === 'checkbox') el.checked = v; else el.value = v; el.dataset.dirty = '1'; }
+  if (actId) { const el = document.getElementById(actId); if (el) { el.focus({ preventScroll: true }); try { if (sel) el.setSelectionRange(sel[0], sel[1]); } catch {} } }
+  document.querySelectorAll('#tabs a').forEach(a => a.dataset.v === S.view ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
+  const mg = $('#makan-grid'), eg = $('#ex-grid');
+  const narrow = window.innerWidth < 900;
+  if (mg) mg.style.gridTemplateColumns = narrow ? 'minmax(0,1fr)' : 'minmax(0,1.6fr) minmax(0,1fr)';
+  if (eg) eg.style.gridTemplateColumns = narrow ? 'minmax(0,1fr)' : 'minmax(0,1fr) minmax(0,1fr)';
+}
+function go(v) { if (location.hash !== '#' + v) location.hash = v; else route(); }
+function route() {
+  const h = location.hash.slice(1);
+  const v = VIEWS[h] ? h : 'ringkasan';
+  if (v !== S.view) { S.view = v; $('#main').querySelectorAll('[data-dirty]').forEach(el => delete el.dataset.dirty); window.scrollTo(0, 0); }
+  render();
+}
+window.addEventListener('hashchange', route);
+window.addEventListener('resize', () => scheduleRender());
+
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 3200); }
+
+/* ---------- events ---------- */
+const main = $('#main');
+main.addEventListener('input', e => { if (e.target.id) e.target.dataset.dirty = '1'; });
+main.addEventListener('change', e => { if (e.target.hasAttribute?.('data-pref')) savePrefs(); else if (e.target.id === 'foto-input' && e.target.files?.[0]) startDraft(e.target.files[0]); else if (e.target.id === 'strava-input' && e.target.files?.[0]) startStrava(e.target.files[0]); else if (e.target.id) e.target.dataset.dirty = '1'; });
+main.addEventListener('dragover', e => { const dz = e.target.closest?.('.drop'); if (dz) { e.preventDefault(); dz.classList.add('over'); } });
+main.addEventListener('dragleave', e => { e.target.closest?.('.drop')?.classList.remove('over'); });
+main.addEventListener('drop', e => { const dz = e.target.closest?.('.drop'); if (!dz) return; e.preventDefault(); const f = e.dataTransfer?.files?.[0]; if (f) (dz.id === 'drop-strava' ? startStrava : startDraft)(f); });
+
+function needProfile() { if (D().demo) { toast('Isi profil Anda dulu untuk mulai mencatat.'); return true; } return false; }
+function armed(btn) { if (btn.classList.contains('armed')) return true; btn.classList.add('armed'); const old = btn.textContent; btn.textContent = 'Yakin hapus?'; setTimeout(() => { if (btn.isConnected) { btn.classList.remove('armed'); btn.textContent = old; } }, 3000); return false; }
+
+async function makeThumb(file, max = 420) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+    const s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * s); cv.height = Math.round(img.naturalHeight * s);
+    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+    return cv.toDataURL('image/jpeg', 0.72);
+  } finally { URL.revokeObjectURL(url); }
+}
+async function startDraft(file) {
+  if (needProfile()) return;
+  if (!/^image\//.test(file.type)) { toast('Pilih file gambar.'); return; }
+  try { const thumb = await makeThumb(file); S.draft = { file, thumb, type: defaultType(), note: '', result: null }; S.err.photo = null; render(); }
+  catch { toast('Gambar tidak bisa dibuka. Coba format JPG atau PNG.'); }
+}
+
+main.addEventListener('submit', async e => {
+  e.preventDefault();
+  const f = e.target;
+  if (f.id === 'profile-form') return saveProfile();
+  if (needProfile()) return;
+  if (f.id === 'manual-form') {
+    const name = $('#man-name').value.trim(), kcal = num($('#man-kcal').value);
+    if (!name || kcal == null) { toast('Isi nama makanan dan kalorinya, atau tekan “Hitung dengan AI”.'); return; }
+    const mr = S.manualAI;
+    const body = { date: S.date, type: $('#man-type').value, name: mr && mr.desc === name ? (mr.nama || name) : name, kcal, protein: num($('#man-p').value), carbs: num($('#man-c').value), fat: num($('#man-f').value), items: mr?.items || null, aiNote: mr?.catatan || null, createdAt: new Date().toISOString() };
+    try { await put('meals', uid(), body); } catch { return; }
+    S.manualAI = null; f.querySelectorAll('[data-dirty]').forEach(el => delete el.dataset.dirty); f.reset(); render(); toast('Makanan tersimpan.');
+  }
+  if (f.id === 'ex-form') {
+    const c = compute(D()); const t = $('#ex-type').value; const ex = EXERCISES.find(x => x.id === t);
+    const minutes = num($('#ex-min').value), inten = num($('#ex-int').value) || 1;
+    const name = t === 'lain' ? $('#ex-name').value.trim() : ex.name;
+    if (!name || !minutes) { toast('Isi jenis dan durasi olahraga.'); return; }
+    const met = (ex?.met || 5) * inten;
+    const kcal = num($('#ex-kcal').value) ?? Math.round(met * c.weight * minutes / 60);
+    try { await put('workouts', uid(), { date: S.date, name, met, minutes, kcal, source: 'manual', createdAt: new Date().toISOString() }); } catch { return; }
+    f.querySelectorAll('[data-dirty]').forEach(el => delete el.dataset.dirty); f.reset(); render(); toast('Olahraga tersimpan.');
+  }
+  if (f.id === 'measure-form') {
+    const date = $('#ms-date').value, w = num($('#ms-w').value), wa = num($('#ms-wa').value);
+    const p = D().profile;
+    if (!date || !w) { toast('Isi tanggal dan berat badan.'); return; }
+    if (date < p.startDate) { toast('Tanggal sebelum program dimulai. Ubah tanggal mulai di Profil bila perlu.'); return; }
+    if (S.editMeasure && S.editMeasure !== date) { try { await del('measurements', S.editMeasure); } catch { return; } }
+    try { await put('measurements', date, { date, weight: w, waist: wa }); } catch { return; }
+    S.editMeasure = null; f.querySelectorAll('[data-dirty]').forEach(el => delete el.dataset.dirty); render(); toast('Ukuran tersimpan.');
+  }
+  if (f.id === 'chat-form') runAI('chat', aiChat);
+});
+
+main.addEventListener('click', async e => {
+  const b = e.target.closest('[data-action]'); if (!b || b.disabled) return;
+  const a = b.dataset.action;
+  if (a === 'day') { const n = Number(b.dataset.n); S.date = n === 0 ? todayStr() : addDays(S.date, n); if (S.date > todayStr()) S.date = todayStr(); S.draft = null; render(); return; }
+  if (a === 'deficit') { if (needProfile()) return; try { await put('diet', 'profile', { ...S.data.diet.profile, deficit: b.dataset.k }); toast('Target kalori diperbarui.'); } catch {} return; }
+  if (a === 'analysis') return runAI('analysis', aiAnalysis);
+  if (a === 'plan') { await runAI('plan', aiPlan); if (!S.err.plan && S.ai) runAI('img', () => aiPlanImages()); return; }
+  if (a === 'img-all') return runAI('img', () => aiPlanImages());
+  if (a === 'img-one') return runAI('img', () => aiPlanImages(Number(b.dataset.i)));
+  if (a === 'photo') return runAI('photo', aiPhoto);
+  if (a === 'text-ai') return runAI('text', aiText);
+  if (a === 'review') return runAI('review', aiReview);
+  if (a === 'cancel-draft') { S.draft = null; S.err.photo = null; render(); return; }
+  if (a === 'save-draft') {
+    if (needProfile()) return;
+    const kcal = num($('#draft-kcal').value), name = $('#draft-name').value.trim();
+    if (!name || kcal == null) { toast('Isi nama dan kalori, atau minta AI memperkirakan.'); return; }
+    const r = S.draft.result;
+    const body = { date: S.date, type: $('#draft-type').value, name, kcal, protein: num($('#draft-p').value), carbs: num($('#draft-c').value), fat: num($('#draft-f').value), img: S.draft.thumb, items: r?.items || null, aiNote: r?.catatan || null, createdAt: new Date().toISOString() };
+    try { await put('meals', uid(), body); } catch { return; }
+    S.draft = null; render(); toast('Makanan tersimpan.'); return;
+  }
+  if (a === 'strava-ai') return runAI('strava', aiStrava);
+  if (a === 'strava-cancel') { S.strava = null; S.err.strava = null; render(); return; }
+  if (a === 'strava-manual') { S.strava.rows = [{ name: '', date: S.date, minutes: null, km: null, kcal: null, met: 5, kcalSrc: 'Kosongkan untuk dihitung otomatis', extra: '' }]; render(); return; }
+  if (a === 'strava-save') {
+    if (needProfile()) return;
+    const st = S.strava, c = compute(D());
+    const items = st.rows.map((r, i) => ({ name: $('#sv-name-' + i).value.trim(), date: $('#sv-date-' + i).value || S.date, minutes: num($('#sv-min-' + i).value), km: num($('#sv-km-' + i).value), kcal: num($('#sv-kcal-' + i).value), met: r.extra || r.kcalSrc === 'Dari Strava' || r.kcalSrc === 'Perkiraan dari MET' ? r.met : stravaMet($('#sv-name-' + i).value), extra: r.extra }));
+    if (items.some(x => !x.name || !x.minutes)) { toast('Isi nama aktivitas dan durasinya.'); return; }
+    if (items.some(x => x.date > todayStr())) { toast('Tanggal aktivitas tidak boleh di masa depan.'); return; }
+    try {
+      for (const x of items) await put('workouts', uid(), { date: x.date, name: x.name, met: x.met, minutes: Math.round(x.minutes), distanceKm: x.km, kcal: x.kcal ?? Math.round(x.met * c.weight * x.minutes / 60), source: 'strava', detail: x.extra || null, img: st.thumb, createdAt: new Date().toISOString() });
+    } catch { return; }
+    const other = items.filter(x => x.date !== S.date).length;
+    S.strava = null; render(); toast(other ? `Tersimpan. ${other} aktivitas masuk ke tanggal lain sesuai screenshot.` : 'Aktivitas Strava tersimpan.'); return;
+  }
+  if (a === 'cal-move') { const [y, m] = (S.calMonth || todayStr().slice(0, 7)).split('-').map(Number); const nd = new Date(y, m - 1 + Number(b.dataset.n), 1); const ym = ymd(nd).slice(0, 7); if (ym <= todayStr().slice(0, 7)) { S.calMonth = ym; render(); } return; }
+  if (a === 'cal-day') { S.date = b.dataset.date; S.draft = null; go('makan'); return; }
+  if (a === 'del-meal') { if (!armed(b)) return; try { await del('meals', b.dataset.id); toast('Dihapus.'); } catch {} return; }
+  if (a === 'del-ex') { if (!armed(b)) return; try { await del('workouts', b.dataset.id); toast('Dihapus.'); } catch {} return; }
+  if (a === 'del-ms') { if (!armed(b)) return; try { await del('measurements', b.dataset.id); toast('Dihapus.'); } catch {} return; }
+  if (a === 'edit-ms') { S.editMeasure = b.dataset.id; main.querySelectorAll('#measure-form [data-dirty]').forEach(el => delete el.dataset.dirty); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  if (a === 'cancel-edit') { S.editMeasure = null; main.querySelectorAll('#measure-form [data-dirty]').forEach(el => delete el.dataset.dirty); render(); return; }
+  if (a === 'add-ex') {
+    if (needProfile()) return;
+    const c = compute(D()); const ex = exerciseList(D(), c).find(x => x.id === b.dataset.id);
+    try { await put('workouts', uid(), { date: S.date, name: ex.name, met: ex.met, minutes: ex.min, kcal: ex.kcal, source: 'saran', createdAt: new Date().toISOString() }); toast(`${ex.name} tercatat.`); } catch {}
+  }
+});
+
+/* ---------- boot ---------- */
+S.view = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'ringkasan';
+initStore().then(route);
+initAI();
+</script>
+</body>
+</html>
