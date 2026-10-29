@@ -1118,7 +1118,7 @@ function vMakan() {
   const dr = S.draft, mr = S.manualAI;
   const canPhoto = S.ai && S.aiImages;
   let upload;
-  if (!dr) upload = `<label class="drop" id="drop" for="foto-input"><input type="file" id="foto-input" accept="${esc(S.aiImages?.mediaTypes?.join(',') || 'image/jpeg,image/png,image/webp')}" capture="environment"><b>Foto atau pilih gambar makanan</b><span class="small muted">${canPhoto ? 'AI akan memperkirakan kalori dan gizinya.' : 'Analisis foto aktif saat halaman dibuka di Claude. Anda tetap bisa menyimpan foto dan mengisi kalorinya sendiri.'}</span></label>`;
+  if (!dr) upload = `<label class="drop" id="drop" for="foto-input"><input type="file" id="foto-input" accept="${esc(S.aiImages?.mediaTypes?.join(',') || 'image/*')}"><b>Foto atau pilih gambar makanan</b><span class="small muted">${canPhoto ? 'AI akan memperkirakan kalori dan gizinya.' : 'Analisis foto aktif saat halaman dibuka di Claude. Anda tetap bisa menyimpan foto dan mengisi kalorinya sendiri.'}</span></label>`;
   else {
     const r = dr.result;
     upload = `<div class="draft"><img src="${dr.thumb}" alt="Foto makanan">
@@ -1262,7 +1262,7 @@ async function startStrava(file) {
 function stravaCard(d, c) {
   const st = S.strava, canAI = S.ai && S.aiImages;
   let body;
-  if (!st) body = `<label class="drop" id="drop-strava" for="strava-input"><input type="file" id="strava-input" accept="image/jpeg,image/png,image/webp"><b>Upload screenshot aktivitas Strava</b><span class="small muted">${canAI ? 'AI membaca jenis aktivitas, tanggal, durasi, jarak, dan kalori dari screenshot.' : 'Pembacaan otomatis aktif saat halaman dibuka di Claude. Anda tetap bisa mengisi angkanya sendiri.'}</span></label>`;
+  if (!st) body = `<label class="drop" id="drop-strava" for="strava-input"><input type="file" id="strava-input" accept="image/*"><b>Upload screenshot aktivitas Strava</b><span class="small muted">${canAI ? 'AI membaca jenis aktivitas, tanggal, durasi, jarak, dan kalori dari screenshot.' : 'Pembacaan otomatis aktif saat halaman dibuka di Claude. Anda tetap bisa mengisi angkanya sendiri.'}</span></label>`;
   else {
     const rows = st.rows;
     body = `<div class="draft"><img src="${st.thumb}" alt="Screenshot Strava" style="aspect-ratio:auto;object-fit:contain;max-height:380px">
