@@ -270,6 +270,9 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
 @media (prefers-reduced-motion: reduce){.thinking::before{animation:none}}
 
 .empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+.gate{position:fixed;inset:0;z-index:30;background:var(--bg);display:grid;place-items:center;overflow-y:auto;padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.gate-card{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px}
+.logout{align-self:flex-start}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:10px;font-size:.9rem;z-index:20;max-width:calc(100vw - 32px)}
 
 @media (max-width: 960px){ .g4{grid-template-columns:repeat(2,minmax(0,1fr))} .g3{grid-template-columns:repeat(2,minmax(0,1fr))} }
@@ -304,6 +307,44 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
   <main id="main"><div class="card"><span class="thinking">Memuat profil, catatan berat badan, makanan, dan olahraga Anda…</span></div></main>
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
+<div class="gate" id="gate" hidden>
+  <form class="gate-card" id="gate-form">
+    <div class="brand"><div class="brand-mark">MD</div><div><b>MyDietPlan</b><small>Teman diet harianmu</small></div></div>
+    <div class="stack" style="gap:4px"><h2>Masuk</h2><p class="small muted">Masukkan password untuk membuka MyDietPlan.</p></div>
+    <label class="f">Password<input type="password" id="gate-pw" autocomplete="current-password" required></label>
+    <label class="chk" style="align-self:flex-start"><input type="checkbox" id="gate-remember" checked>Ingat di perangkat ini</label>
+    <p class="small" id="gate-err" style="color:var(--bad)" hidden>Password salah. Periksa huruf besar/kecil lalu coba lagi.</p>
+    <button class="btn primary" type="submit">Masuk</button>
+  </form>
+</div>
+<script>
+/* Password gate: only on the standalone site (GitHub Pages). Inside Claude, access is handled by Claude sign-in. */
+(() => {
+  if (window.claude) return;
+  const HASH = '48a98421ff0a00369af30d092ca64d39a5415547d65ee777927a5973f28c2dbb';
+  const app = document.querySelector('.app'), gate = document.getElementById('gate');
+  let ok = false;
+  try { ok = localStorage.getItem('mdp-unlock') === HASH || sessionStorage.getItem('mdp-unlock') === HASH; } catch {}
+  const addLogout = () => {
+    const b = document.createElement('button');
+    b.className = 'btn small ghost logout'; b.type = 'button'; b.textContent = 'Keluar';
+    b.onclick = () => { try { localStorage.removeItem('mdp-unlock'); sessionStorage.removeItem('mdp-unlock'); } catch {} location.reload(); };
+    document.querySelector('.nav').append(b);
+  };
+  if (ok) { addLogout(); return; }
+  app.hidden = true; gate.hidden = false;
+  document.getElementById('gate-pw').focus();
+  document.getElementById('gate-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const pw = document.getElementById('gate-pw').value;
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('mydietplan:' + pw));
+    const hex = [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, '0')).join('');
+    if (hex !== HASH) { document.getElementById('gate-err').hidden = false; document.getElementById('gate-pw').select(); return; }
+    try { (document.getElementById('gate-remember').checked ? localStorage : sessionStorage).setItem('mdp-unlock', HASH); } catch {}
+    gate.hidden = true; app.hidden = false; addLogout();
+  });
+})();
+</script>
 
 <script>
 /* ---------- helpers ---------- */
