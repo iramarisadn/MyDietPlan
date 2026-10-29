@@ -324,7 +324,7 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
       <div class="stack" style="gap:4px"><h2>Daftar</h2><p class="small muted">Buat akun untuk mulai memakai MyDietPlan.</p></div>
       <label class="f">Nama lengkap<input type="text" id="su-name" autocomplete="name" required></label>
       <label class="f">Nama pengguna<span class="hint">Dipakai untuk masuk. Huruf kecil, angka, titik, _ atau -</span><input type="text" id="su-user" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
-      <label class="f">Password<span class="hint">Minimal 8 karakter</span><input type="password" id="su-pw" autocomplete="new-password" required></label>
+      <label class="f">Password<span class="hint">Minimal 6 huruf atau angka</span><input type="password" id="su-pw" autocomplete="new-password" required></label>
       <label class="f">Ulangi password<input type="password" id="su-pw2" autocomplete="new-password" required></label>
       <p class="small" id="su-err" style="color:var(--bad)" hidden></p>
       <button class="btn primary" type="submit">Buat akun</button>
@@ -375,7 +375,7 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
     if (!/^[a-z0-9._-]{3,30}$/.test(u)) return err('su-err', 'Nama pengguna 3–30 karakter: huruf kecil, angka, titik, garis bawah, atau tanda minus. Tanpa spasi.');
     const accs = accounts();
     if (accs[u]) return err('su-err', 'Nama pengguna ini sudah terdaftar di perangkat ini. Pilih nama lain, atau masuk.');
-    if (pw.length < 8) return err('su-err', 'Password minimal 8 karakter.');
+    if (pw.length < 6) return err('su-err', 'Password minimal 6 huruf atau angka.');
     if (pw !== pw2) return err('su-err', 'Ulangi password belum sama dengan password.');
     const salt = hex(crypto.getRandomValues(new Uint8Array(16)));
     accs[u] = { name, salt, hash: await hashPw(pw, salt), createdAt: new Date().toISOString() };
